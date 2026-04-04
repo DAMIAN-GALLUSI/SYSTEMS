@@ -1,0 +1,22 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "testuser@example.com",
+      "password": "$2a$10$d8mW9gmWSmwL93EHzUpoTOAf32v1FZt4AcrkeIfhEhq6O8mCdwkZK",
+      "full_name": "Test User",
+      "role": "employee",
+      "created_at": "2026-04-04T06:00:05.135Z",
+      "updated_at": "2026-04-04T06:00:05.135Z"
+    },
+    {
+      "id": 2,
+      "email": "damiangallusi@gmail.com",
+      "password": "$2a$10$laP4NpMycOXoB7ak9q3hiepOCQFLpIVG9kCgHzHOuUMMLwT.2FBBW",
+      "full_name": "DAMIAN GALLUSI STEPHANO",
+      "role": "employee",
+      "created_at": "2026-04-04T06:10:15.321Z",
+      "updated_at": "2026-04-04T06:10:15.321Z"
+    }
+  ]
+}

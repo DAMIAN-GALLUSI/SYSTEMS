@@ -66,6 +66,46 @@
   border-color: #667eea;
 }
 
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper input {
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  line-height: 1;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle:hover {
+  color: #333;
+}
+
+.password-toggle svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  display: block;
+}
+
+.password-toggle:focus {
+  outline: none;
+}
+
 .btn-primary {
   width: 100%;
   padding: 0.875rem;
