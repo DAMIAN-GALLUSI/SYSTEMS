@@ -14,11 +14,10 @@ interface LineEntry {
   lineCard: string;
 }
 
-const createInitialEntries = (): LineEntry[] =>
-  SERVICES.map((service) => ({
-    serviceType: service.id,
+const createEmptyEntry = (): LineEntry => ({
+    serviceType: 'vodacom',
     lineCard: '',
-  }));
+  });
 
 const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
   const [formData, setFormData] = useState({
@@ -26,7 +25,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
     totalCashOut: '',
     dailyConsumption: '',
   });
-  const [entries, setEntries] = useState<LineEntry[]>(createInitialEntries());
+  const [entries, setEntries] = useState<LineEntry[]>([createEmptyEntry()]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -37,13 +36,22 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
     });
   };
 
-  const handleEntryChange = (index: number, value: string) => {
+  const handleEntryChange = (index: number, field: keyof LineEntry, value: string) => {
     const nextEntries = [...entries];
     nextEntries[index] = {
       ...nextEntries[index],
-      lineCard: value,
+      [field]: value,
     };
     setEntries(nextEntries);
+  };
+
+  const addLineRow = () => {
+    setEntries([...entries, createEmptyEntry()]);
+  };
+
+  const removeLineRow = (index: number) => {
+    if (entries.length === 1) return;
+    setEntries(entries.filter((_, rowIndex) => rowIndex !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,7 +74,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       setLoading(false);
       setMessage({
         type: 'error',
-        text: 'Please fill all 8 registered lines, cash out, place of consumption, and daily uses.',
+        text: 'Please fill all registered lines, cash out, place of consumption, and daily uses.',
       });
       return;
     }
@@ -88,7 +96,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
         totalCashOut: '',
         dailyConsumption: '',
       });
-      setEntries(createInitialEntries());
+      setEntries([createEmptyEntry()]);
     } catch (error: any) {
       setMessage({
         type: 'error',
@@ -105,7 +113,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       <div className="transaction-content">
         <div className="transaction-card">
           <h1>Registered Details</h1>
-          <p className="subtitle">Fill the 8 registered lines, your cash out, place of consumption, and daily uses.</p>
+          <p className="subtitle">Manually add only the lines you use, then fill cash out, place of consumption, and daily uses.</p>
 
           {message.text && <div className={`message ${message.type}`}>{message.text}</div>}
 
@@ -163,23 +171,44 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
               <div className="line-table-header">
                 <span>Service</span>
                 <span>Telephone Line / Card</span>
+                <span>Action</span>
               </div>
               {entries.map((entry, index) => {
-                const service = SERVICES.find((item) => item.id === entry.serviceType);
                 return (
-                  <div className="line-row" key={entry.serviceType}>
-                    <span className="service-name">{service?.name || entry.serviceType}</span>
+                  <div className="line-row" key={`${entry.serviceType}-${index}`}>
+                    <select
+                      value={entry.serviceType}
+                      onChange={(e) => handleEntryChange(index, 'serviceType', e.target.value)}
+                    >
+                      {SERVICES.map((service) => (
+                        <option key={service.id} value={service.id}>
+                          {service.name}
+                        </option>
+                      ))}
+                    </select>
                     <input
                       type="text"
                       value={entry.lineCard}
-                      onChange={(e) => handleEntryChange(index, e.target.value)}
+                      onChange={(e) => handleEntryChange(index, 'lineCard', e.target.value)}
                       placeholder="Line/Card number"
                       required
                     />
+                    <button
+                      type="button"
+                      className="line-remove-btn"
+                      onClick={() => removeLineRow(index)}
+                      disabled={entries.length === 1}
+                    >
+                      Remove
+                    </button>
                   </div>
                 );
               })}
             </div>
+
+            <button type="button" className="line-add-btn" onClick={addLineRow}>
+              + Add Another Line
+            </button>
 
             <button type="submit" disabled={loading} className="btn-submit">
               {loading ? 'Saving...' : 'Save Registered Details'}

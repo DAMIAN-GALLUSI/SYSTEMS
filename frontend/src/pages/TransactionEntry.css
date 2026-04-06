@@ -127,7 +127,7 @@
 .line-table-header,
 .line-row {
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
+  grid-template-columns: 1.1fr 1fr auto;
   gap: 0.75rem;
   align-items: center;
   padding: 0.75rem;
@@ -159,6 +159,40 @@
 .line-row input:focus {
   outline: none;
   border-color: #0066cc;
+}
+
+.line-row select {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+.line-row select:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.line-add-btn,
+.line-remove-btn {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #1f2937;
+  border-radius: 6px;
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.line-add-btn {
+  margin-bottom: 1.5rem;
+}
+
+.line-remove-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {

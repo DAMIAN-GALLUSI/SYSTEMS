@@ -37,10 +37,10 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
       notes,
     } = req.body;
 
-    // New payload mode: record 8 service line/cards with one shared cash-out value.
+    // New payload mode: record user-selected service line/cards with one shared cash-out value.
     if (Array.isArray(entries)) {
-      if (entries.length !== 8) {
-        return res.status(400).json({ message: 'Exactly 8 line/card entries are required' });
+      if (entries.length < 1) {
+        return res.status(400).json({ message: 'At least one line/card entry is required' });
       }
 
       if (!placeOfConsumption || typeof placeOfConsumption !== 'string') {
