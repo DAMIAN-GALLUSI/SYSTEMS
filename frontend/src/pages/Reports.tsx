@@ -3,6 +3,9 @@ import Navbar from '../components/Navbar';
 import { reportAPI } from '../services/api';
 import { Transaction } from '../types';
 import { formatCurrency, formatDate, getServiceInfo } from '../utils/constants';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import './Reports.css';
 
 interface ReportsProps {
@@ -56,27 +59,67 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
 
   const downloadReport = async () => {
     try {
-      const params: any = {};
-      if (filters.startDate) params.startDate = filters.startDate;
-      if (filters.endDate) params.endDate = filters.endDate;
-      if (filters.serviceType) params.serviceType = filters.serviceType;
+      if (!reportData) {
+        alert('Generate the report first');
+        return;
+      }
 
-      const response = await reportAPI.download(params);
-      
-      // Create a blob and download
-      const blob = new Blob([response.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `report_${Date.now()}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      const rows = reportData.transactions.map((transaction) => [
+        formatDate(transaction.createdAt),
+        getServiceInfo(transaction.serviceType).name,
+        transaction.transactionType,
+        transaction.amount,
+        transaction.cashInHand,
+        transaction.employeeName || 'N/A',
+        transaction.description || '-'
+      ]);
+
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.aoa_to_sheet([
+        ['Date', 'Service', 'Type', 'Amount', 'Cash in Hand', 'Employee', 'Description'],
+        ...rows,
+      ]);
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+      XLSX.writeFile(workbook, `report_${Date.now()}.xlsx`);
     } catch (error) {
       console.error('Failed to download report:', error);
       alert('Failed to download report');
     }
+  };
+
+  const downloadPdfReport = () => {
+    if (!reportData) {
+      alert('Generate the report first');
+      return;
+    }
+
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text('Business Report', 14, 16);
+    doc.setFontSize(10);
+    doc.text(`Generated at: ${formatDate(reportData.generatedAt)}`, 14, 23);
+
+    autoTable(doc, {
+      startY: 30,
+      head: [['Date', 'Service', 'Type', 'Amount', 'Cash in Hand', 'Employee', 'Description']],
+      body: reportData.transactions.map((transaction) => [
+        formatDate(transaction.createdAt),
+        getServiceInfo(transaction.serviceType).name,
+        transaction.transactionType,
+        formatCurrency(transaction.amount),
+        formatCurrency(transaction.cashInHand),
+        transaction.employeeName || 'N/A',
+        transaction.description || '-',
+      ]),
+      styles: {
+        fontSize: 8,
+      },
+      headStyles: {
+        fillColor: [0, 102, 204],
+      },
+    });
+
+    doc.save(`report_${Date.now()}.pdf`);
   };
 
   useEffect(() => {
@@ -143,7 +186,14 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
               disabled={!reportData} 
               className="btn-download"
             >
-              Download CSV
+              Download Excel
+            </button>
+            <button
+              onClick={downloadPdfReport}
+              disabled={!reportData}
+              className="btn-download"
+            >
+              Download PDF
             </button>
           </div>
         </div>
