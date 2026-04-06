@@ -19,19 +19,22 @@ const createEmptyEntry = (): LineEntry => ({
 });
 
 const normalizeServiceType = (serviceName: string): ServiceType | null => {
-  const normalized = serviceName.trim().toLowerCase().replace(/\s+/g, '_');
-  const map: Record<string, ServiceType> = {
-    vodacom: 'vodacom',
-    airtel: 'airtel',
-    tigo: 'tigo',
-    halotel: 'halotel',
-    lipa_namba_vodacom: 'lipa_namba_vodacom',
-    lipa_namba_airtel: 'lipa_namba_airtel',
-    lipa_namba_tigo: 'lipa_namba_tigo',
-    lipa_namba_halotel: 'lipa_namba_halotel',
-  };
+  const normalized = serviceName.trim().toLowerCase().replace(/\s+/g, ' ');
+  const compact = normalized.replace(/[_\-]/g, ' ');
 
-  return map[normalized] || null;
+  if (compact.includes('lipa') && compact.includes('vodacom')) return 'lipa_namba_vodacom';
+  if (compact.includes('lipa') && compact.includes('airtel')) return 'lipa_namba_airtel';
+  if (compact.includes('lipa') && compact.includes('airtell')) return 'lipa_namba_airtel';
+  if (compact.includes('lipa') && compact.includes('tigo')) return 'lipa_namba_tigo';
+  if (compact.includes('lipa') && compact.includes('halotel')) return 'lipa_namba_halotel';
+
+  if (compact.includes('vodacom')) return 'vodacom';
+  if (compact.includes('airtel') || compact.includes('airtell')) return 'airtel';
+  if (compact.includes('tigo')) return 'tigo';
+  if (compact.includes('halotel')) return 'halotel';
+
+  // Default bucket keeps save flow manual and non-blocking.
+  return 'vodacom';
 };
 
 const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
@@ -80,15 +83,6 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       lineCard: entry.lineCard.trim(),
       serviceName: entry.serviceName.trim(),
     }));
-
-    if (mappedEntries.some((entry) => !entry.serviceType)) {
-      setLoading(false);
-      setMessage({
-        type: 'error',
-        text: 'Use valid service names: Vodacom, Airtel, Tigo, Halotel, Lipa Namba Vodacom, Lipa Namba Airtel, Lipa Namba Tigo, Lipa Namba Halotel.',
-      });
-      return;
-    }
 
     try {
       await transactionAPI.create({
@@ -159,7 +153,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
             </div>
 
             <button type="button" className="line-add-btn" onClick={addLineRow}>
-              add another line, your cash, or uses of this day
+              + add another line, your cash, or uses of this day
             </button>
 
             <button type="submit" disabled={loading} className="btn-submit">
