@@ -35,21 +35,9 @@ const normalizeServiceType = (serviceName: string): ServiceType | null => {
 };
 
 const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
-  const [formData, setFormData] = useState({
-    placeOfConsumption: '',
-    totalCashOut: '',
-    dailyConsumption: '',
-  });
   const [entries, setEntries] = useState<LineEntry[]>([createEmptyEntry()]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
 
   const handleEntryChange = (index: number, field: keyof LineEntry, value: string) => {
     const nextEntries = [...entries];
@@ -75,21 +63,14 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
     setLoading(true);
 
     const hasInvalidRows = entries.some((entry) => !entry.serviceName.trim() || !entry.lineCard.trim());
-    const totalCashOut = Number(formData.totalCashOut);
-    const dailyConsumption = Number(formData.dailyConsumption);
 
     if (
-      hasInvalidRows ||
-      !formData.placeOfConsumption.trim() ||
-      Number.isNaN(totalCashOut) ||
-      totalCashOut < 0 ||
-      Number.isNaN(dailyConsumption) ||
-      dailyConsumption < 0
+      hasInvalidRows
     ) {
       setLoading(false);
       setMessage({
         type: 'error',
-        text: 'Please fill service name and line/card for each row, plus cash out, place of consumption, and daily uses.',
+        text: 'Please fill service name and line/card for each row.',
       });
       return;
     }
@@ -111,9 +92,6 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
 
     try {
       await transactionAPI.create({
-        placeOfConsumption: formData.placeOfConsumption,
-        totalCashOut,
-        dailyConsumption,
         entries: mappedEntries.map((entry) => ({
           serviceType: entry.serviceType,
           lineCard: entry.lineCard.trim(),
@@ -121,11 +99,6 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       });
 
       setMessage({ type: 'success', text: 'Registered details saved successfully!' });
-      setFormData({
-        placeOfConsumption: '',
-        totalCashOut: '',
-        dailyConsumption: '',
-      });
       setEntries([createEmptyEntry()]);
     } catch (error: any) {
       setMessage({
@@ -143,59 +116,11 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       <div className="transaction-content">
         <div className="transaction-card">
           <h1>Registered Details</h1>
-          <p className="subtitle">Manually enter service name and line/card first, then fill cash out, place of consumption, and daily uses.</p>
+          <p className="subtitle">Manually enter service name and line/card, then save registered details.</p>
 
           {message.text && <div className={`message ${message.type}`}>{message.text}</div>}
 
           <form onSubmit={handleSubmit}>
-            <div className="section-header">Transaction Details</div>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="placeOfConsumption">Place of Consumption</label>
-                <input
-                  type="text"
-                  id="placeOfConsumption"
-                  name="placeOfConsumption"
-                  value={formData.placeOfConsumption}
-                  onChange={handleChange}
-                  required
-                  placeholder="Enter place/location"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="totalCashOut">Your Cash Out (TZS)</label>
-                <input
-                  type="number"
-                  id="totalCashOut"
-                  name="totalCashOut"
-                  value={formData.totalCashOut}
-                  onChange={handleChange}
-                  min="0"
-                  step="0.01"
-                  placeholder="Enter cash out"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="dailyConsumption">Daily Uses / Consumption (TZS)</label>
-                <input
-                  type="number"
-                  id="dailyConsumption"
-                  name="dailyConsumption"
-                  value={formData.dailyConsumption}
-                  onChange={handleChange}
-                  min="0"
-                  step="0.01"
-                  placeholder="Example: 10000"
-                  required
-                />
-              </div>
-            </div>
-
             <div className="section-header">register lines, your cash and uses of the day</div>
             <div className="line-table">
               <div className="line-table-header">
@@ -234,7 +159,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
             </div>
 
             <button type="button" className="line-add-btn" onClick={addLineRow}>
-              + Add Another Line
+              add another line, your cash, or uses of this day
             </button>
 
             <button type="submit" disabled={loading} className="btn-submit">

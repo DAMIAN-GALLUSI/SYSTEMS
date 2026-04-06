@@ -43,24 +43,15 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
         return res.status(400).json({ message: 'At least one line/card entry is required' });
       }
 
-      if (!placeOfConsumption || typeof placeOfConsumption !== 'string') {
-        return res.status(400).json({ message: 'Place of consumption is required' });
-      }
-
       const normalizedTransactionType = VALID_TRANSACTION_TYPES.has(transactionType)
         ? transactionType
         : 'withdraw';
 
       const parsedTotalCashOut = Number(totalCashOut);
       const parsedDailyConsumption = Number(dailyConsumption);
-
-      if (Number.isNaN(parsedTotalCashOut) || parsedTotalCashOut < 0) {
-        return res.status(400).json({ message: 'Total cash out must be a valid number' });
-      }
-
-      if (Number.isNaN(parsedDailyConsumption) || parsedDailyConsumption < 0) {
-        return res.status(400).json({ message: 'Daily consumption must be a valid number' });
-      }
+      const safeTotalCashOut = Number.isNaN(parsedTotalCashOut) || parsedTotalCashOut < 0 ? 0 : parsedTotalCashOut;
+      const safeDailyConsumption = Number.isNaN(parsedDailyConsumption) || parsedDailyConsumption < 0 ? 0 : parsedDailyConsumption;
+      const safePlaceOfConsumption = typeof placeOfConsumption === 'string' ? placeOfConsumption : '';
 
       const createdTransactions = [];
 
@@ -82,13 +73,13 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
         }
 
         // Save the shared total cash-out on the first row only to keep report totals accurate.
-        const amountForRow = index === 0 ? parsedTotalCashOut : 0;
+        const amountForRow = index === 0 ? safeTotalCashOut : 0;
 
         const metadata = {
           lineCard,
-          placeOfConsumption,
-          totalCashOut: parsedTotalCashOut,
-          dailyConsumption: parsedDailyConsumption,
+          placeOfConsumption: safePlaceOfConsumption,
+          totalCashOut: safeTotalCashOut,
+          dailyConsumption: safeDailyConsumption,
           notes: typeof notes === 'string' ? notes : '',
           mode: 'batch-line-entry',
           isPrimaryAmountRow: index === 0,
