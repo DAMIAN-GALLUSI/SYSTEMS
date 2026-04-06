@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import { transactionAPI } from '../services/api';
-import { SERVICES } from '../utils/constants';
 import { ServiceType } from '../types';
 import './TransactionEntry.css';
 
@@ -10,14 +9,30 @@ interface RegisteredDetailsProps {
 }
 
 interface LineEntry {
-  serviceType: ServiceType;
+  serviceName: string;
   lineCard: string;
 }
 
 const createEmptyEntry = (): LineEntry => ({
-    serviceType: 'vodacom',
-    lineCard: '',
-  });
+  serviceName: '',
+  lineCard: '',
+});
+
+const normalizeServiceType = (serviceName: string): ServiceType | null => {
+  const normalized = serviceName.trim().toLowerCase().replace(/\s+/g, '_');
+  const map: Record<string, ServiceType> = {
+    vodacom: 'vodacom',
+    airtel: 'airtel',
+    tigo: 'tigo',
+    halotel: 'halotel',
+    lipa_namba_vodacom: 'lipa_namba_vodacom',
+    lipa_namba_airtel: 'lipa_namba_airtel',
+    lipa_namba_tigo: 'lipa_namba_tigo',
+    lipa_namba_halotel: 'lipa_namba_halotel',
+  };
+
+  return map[normalized] || null;
+};
 
 const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
   const [formData, setFormData] = useState({
@@ -59,7 +74,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
     setMessage({ type: '', text: '' });
     setLoading(true);
 
-    const hasInvalidRows = entries.some((entry) => !entry.lineCard.trim());
+    const hasInvalidRows = entries.some((entry) => !entry.serviceName.trim() || !entry.lineCard.trim());
     const totalCashOut = Number(formData.totalCashOut);
     const dailyConsumption = Number(formData.dailyConsumption);
 
@@ -74,7 +89,22 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       setLoading(false);
       setMessage({
         type: 'error',
-        text: 'Please fill all registered lines, cash out, place of consumption, and daily uses.',
+        text: 'Please fill service name and line/card for each row, plus cash out, place of consumption, and daily uses.',
+      });
+      return;
+    }
+
+    const mappedEntries = entries.map((entry) => ({
+      serviceType: normalizeServiceType(entry.serviceName),
+      lineCard: entry.lineCard.trim(),
+      serviceName: entry.serviceName.trim(),
+    }));
+
+    if (mappedEntries.some((entry) => !entry.serviceType)) {
+      setLoading(false);
+      setMessage({
+        type: 'error',
+        text: 'Use valid service names: Vodacom, Airtel, Tigo, Halotel, Lipa Namba Vodacom, Lipa Namba Airtel, Lipa Namba Tigo, Lipa Namba Halotel.',
       });
       return;
     }
@@ -84,7 +114,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
         placeOfConsumption: formData.placeOfConsumption,
         totalCashOut,
         dailyConsumption,
-        entries: entries.map((entry) => ({
+        entries: mappedEntries.map((entry) => ({
           serviceType: entry.serviceType,
           lineCard: entry.lineCard.trim(),
         })),
@@ -113,7 +143,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       <div className="transaction-content">
         <div className="transaction-card">
           <h1>Registered Details</h1>
-          <p className="subtitle">Manually add only the lines you use, then fill cash out, place of consumption, and daily uses.</p>
+          <p className="subtitle">Manually enter service name and line/card first, then fill cash out, place of consumption, and daily uses.</p>
 
           {message.text && <div className={`message ${message.type}`}>{message.text}</div>}
 
@@ -166,26 +196,23 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
               </div>
             </div>
 
-            <div className="section-header">Registered Lines</div>
+            <div className="section-header">register lines, your cash and uses of the day</div>
             <div className="line-table">
               <div className="line-table-header">
-                <span>Service</span>
+                <span>Service Name</span>
                 <span>Telephone Line / Card</span>
                 <span>Action</span>
               </div>
               {entries.map((entry, index) => {
                 return (
-                  <div className="line-row" key={`${entry.serviceType}-${index}`}>
-                    <select
-                      value={entry.serviceType}
-                      onChange={(e) => handleEntryChange(index, 'serviceType', e.target.value)}
-                    >
-                      {SERVICES.map((service) => (
-                        <option key={service.id} value={service.id}>
-                          {service.name}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="line-row" key={`line-row-${index}`}>
+                    <input
+                      type="text"
+                      value={entry.serviceName}
+                      onChange={(e) => handleEntryChange(index, 'serviceName', e.target.value)}
+                      placeholder="Example: Vodacom"
+                      required
+                    />
                     <input
                       type="text"
                       value={entry.lineCard}
