@@ -8,7 +8,6 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
   const location = useLocation();
-  const userRole = localStorage.getItem('role');
 
   return (
     <nav className="navbar">
@@ -21,22 +20,20 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
             to="/dashboard" 
             className={location.pathname === '/dashboard' ? 'active' : ''}
           >
-            Dashboard
+            Home
           </Link>
           <Link 
             to="/transactions" 
             className={location.pathname === '/transactions' ? 'active' : ''}
           >
-            Transactions
+            Record Transactions
           </Link>
-          {userRole === 'owner' && (
-            <Link 
-              to="/reports" 
-              className={location.pathname === '/reports' ? 'active' : ''}
-            >
-              Reports
-            </Link>
-          )}
+          <Link 
+            to="/reports" 
+            className={location.pathname === '/reports' ? 'active' : ''}
+          >
+            Report
+          </Link>
           <button onClick={onLogout} className="logout-btn">
             Logout
           </button>
