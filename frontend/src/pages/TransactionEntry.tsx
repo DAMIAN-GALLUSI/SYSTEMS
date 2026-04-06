@@ -9,14 +9,26 @@ interface TransactionEntryProps {
   onLogout: () => void;
 }
 
+interface LineEntry {
+  serviceType: ServiceType;
+  lineCard: string;
+}
+
+const createInitialEntries = (): LineEntry[] =>
+  SERVICES.map((service) => ({
+    serviceType: service.id,
+    lineCard: '',
+  }));
+
 const TransactionEntry: React.FC<TransactionEntryProps> = ({ onLogout }) => {
   const [formData, setFormData] = useState({
-    serviceType: 'vodacom' as ServiceType,
-    amount: '',
     transactionType: 'deposit',
-    cashInHand: '',
-    description: ''
+    placeOfConsumption: '',
+    totalCashOut: '',
+    dailyConsumption: '',
+    notes: ''
   });
+  const [entries, setEntries] = useState<LineEntry[]>(createInitialEntries());
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -27,26 +39,55 @@ const TransactionEntry: React.FC<TransactionEntryProps> = ({ onLogout }) => {
     });
   };
 
+  const handleEntryChange = (index: number, field: 'lineCard', value: string) => {
+    const nextEntries = [...entries];
+    nextEntries[index] = {
+      ...nextEntries[index],
+      [field]: value,
+    };
+    setEntries(nextEntries);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage({ type: '', text: '' });
     setLoading(true);
 
+    const hasInvalidRows = entries.some((entry) => !entry.lineCard.trim());
+    const totalCashOut = Number(formData.totalCashOut);
+    const dailyConsumption = Number(formData.dailyConsumption);
+
+    if (hasInvalidRows || Number.isNaN(totalCashOut) || totalCashOut < 0 || Number.isNaN(dailyConsumption) || dailyConsumption < 0) {
+      setLoading(false);
+      setMessage({
+        type: 'error',
+        text: 'Please fill all 8 line/card values, total cash out, and daily consumption.',
+      });
+      return;
+    }
+
     try {
       await transactionAPI.create({
-        serviceType: formData.serviceType,
-        amount: parseFloat(formData.amount),
         transactionType: formData.transactionType,
-        cashInHand: parseFloat(formData.cashInHand),
-        description: formData.description
+        placeOfConsumption: formData.placeOfConsumption,
+        totalCashOut,
+        dailyConsumption,
+        notes: formData.notes,
+        entries: entries.map((entry) => ({
+          serviceType: entry.serviceType,
+          lineCard: entry.lineCard.trim(),
+        })),
       });
 
-      setMessage({ type: 'success', text: 'Transaction recorded successfully!' });
+      setMessage({ type: 'success', text: 'All 8 line/card records were saved successfully!' });
       setFormData({
         ...formData,
-        amount: '',
-        description: ''
+        placeOfConsumption: '',
+        totalCashOut: '',
+        dailyConsumption: '',
+        notes: '',
       });
+      setEntries(createInitialEntries());
     } catch (error: any) {
       setMessage({ 
         type: 'error', 
@@ -62,8 +103,8 @@ const TransactionEntry: React.FC<TransactionEntryProps> = ({ onLogout }) => {
       <Navbar onLogout={onLogout} />
       <div className="transaction-content">
         <div className="transaction-card">
-          <h1>Record Transaction</h1>
-          <p className="subtitle">Enter transaction details for mobile money services</p>
+          <h1>Transactions Fill</h1>
+          <p className="subtitle">Fill the registered lines, shared money out value, daily consumption, and place of consumption</p>
 
           {message.text && (
             <div className={`message ${message.type}`}>
@@ -72,22 +113,19 @@ const TransactionEntry: React.FC<TransactionEntryProps> = ({ onLogout }) => {
           )}
 
           <form onSubmit={handleSubmit}>
+            <div className="section-header">Transaction Details</div>
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="serviceType">Service</label>
-                <select
-                  id="serviceType"
-                  name="serviceType"
-                  value={formData.serviceType}
+                <label htmlFor="placeOfConsumption">Place of Consumption</label>
+                <input
+                  type="text"
+                  id="placeOfConsumption"
+                  name="placeOfConsumption"
+                  value={formData.placeOfConsumption}
                   onChange={handleChange}
                   required
-                >
-                  {SERVICES.map(service => (
-                    <option key={service.id} value={service.id}>
-                      {service.name}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Enter place/location"
+                />
               </div>
 
               <div className="form-group">
@@ -106,52 +144,75 @@ const TransactionEntry: React.FC<TransactionEntryProps> = ({ onLogout }) => {
               </div>
             </div>
 
+            <div className="section-header">Registered Lines</div>
+            <div className="line-table">
+              <div className="line-table-header">
+                <span>Service</span>
+                <span>Telephone Line / Card</span>
+              </div>
+              {entries.map((entry, index) => {
+                const service = SERVICES.find((item) => item.id === entry.serviceType);
+                return (
+                  <div className="line-row" key={entry.serviceType}>
+                    <span className="service-name">{service?.name || entry.serviceType}</span>
+                    <input
+                      type="text"
+                      value={entry.lineCard}
+                      onChange={(e) => handleEntryChange(index, 'lineCard', e.target.value)}
+                      placeholder="Line/Card number"
+                      required
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="amount">Amount (TZS)</label>
+                <label htmlFor="totalCashOut">Shared Money Out / Cash Out (TZS)</label>
                 <input
                   type="number"
-                  id="amount"
-                  name="amount"
-                  value={formData.amount}
+                  id="totalCashOut"
+                  name="totalCashOut"
+                  value={formData.totalCashOut}
                   onChange={handleChange}
-                  required
                   min="0"
                   step="0.01"
-                  placeholder="Enter amount"
+                  placeholder="Enter total cash out"
+                  required
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="cashInHand">Cash in Hand After Transaction (TZS)</label>
+                <label htmlFor="dailyConsumption">Daily Consumption (TZS)</label>
                 <input
                   type="number"
-                  id="cashInHand"
-                  name="cashInHand"
-                  value={formData.cashInHand}
+                  id="dailyConsumption"
+                  name="dailyConsumption"
+                  value={formData.dailyConsumption}
                   onChange={handleChange}
-                  required
                   min="0"
                   step="0.01"
-                  placeholder="Enter current cash balance"
+                  placeholder="Example: 10000"
+                  required
                 />
               </div>
             </div>
 
             <div className="form-group">
-              <label htmlFor="description">Description (Optional)</label>
+              <label htmlFor="notes">Notes (Optional)</label>
               <textarea
-                id="description"
-                name="description"
-                value={formData.description}
+                id="notes"
+                name="notes"
+                value={formData.notes}
                 onChange={handleChange}
                 rows={3}
-                placeholder="Add any notes about this transaction"
+                placeholder="Add any notes about these entries"
               />
             </div>
 
             <button type="submit" disabled={loading} className="btn-submit">
-              {loading ? 'Recording...' : 'Record Transaction'}
+              {loading ? 'Saving...' : 'Save Transactions Fill'}
             </button>
           </form>
         </div>

@@ -27,6 +27,14 @@
   margin-bottom: 2rem;
 }
 
+.section-header {
+  margin: 1.5rem 0 1rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: 0.02em;
+}
+
 .message {
   padding: 1rem;
   border-radius: 6px;
@@ -107,4 +115,64 @@
 .btn-submit:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.line-table {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.line-table-header,
+.line-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem;
+}
+
+.line-table-header {
+  background-color: #f3f4f6;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.line-row {
+  border-top: 1px solid #f1f5f9;
+}
+
+.service-name {
+  font-weight: 500;
+  color: #374151;
+}
+
+.line-row input {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.line-row input:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+@media (max-width: 768px) {
+  .transaction-content {
+    padding: 1rem;
+  }
+
+  .transaction-card {
+    padding: 1.25rem;
+  }
+
+  .line-table-header,
+  .line-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
 }

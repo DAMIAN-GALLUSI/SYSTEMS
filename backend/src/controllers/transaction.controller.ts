@@ -3,15 +3,138 @@ import { validationResult } from 'express-validator';
 import pool from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
 
+const VALID_SERVICE_TYPES = new Set([
+  'vodacom',
+  'airtel',
+  'tigo',
+  'halotel',
+  'lipa_namba_vodacom',
+  'lipa_namba_airtel',
+  'lipa_namba_tigo',
+  'lipa_namba_halotel',
+]);
+
+const VALID_TRANSACTION_TYPES = new Set(['deposit', 'withdraw', 'transfer']);
+
 export const createTransaction = async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const {
+      serviceType,
+      amount,
+      transactionType,
+      cashInHand,
+      description,
+      entries,
+      placeOfConsumption,
+      totalCashOut,
+      dailyConsumption,
+      notes,
+    } = req.body;
+
+    // New payload mode: record 8 service line/cards with one shared cash-out value.
+    if (Array.isArray(entries)) {
+      if (entries.length !== 8) {
+        return res.status(400).json({ message: 'Exactly 8 line/card entries are required' });
+      }
+
+      if (!placeOfConsumption || typeof placeOfConsumption !== 'string') {
+        return res.status(400).json({ message: 'Place of consumption is required' });
+      }
+
+      if (!VALID_TRANSACTION_TYPES.has(transactionType)) {
+        return res.status(400).json({ message: 'Invalid transaction type' });
+      }
+
+      const parsedTotalCashOut = Number(totalCashOut);
+      const parsedDailyConsumption = Number(dailyConsumption);
+
+      if (Number.isNaN(parsedTotalCashOut) || parsedTotalCashOut < 0) {
+        return res.status(400).json({ message: 'Total cash out must be a valid number' });
+      }
+
+      if (Number.isNaN(parsedDailyConsumption) || parsedDailyConsumption < 0) {
+        return res.status(400).json({ message: 'Daily consumption must be a valid number' });
+      }
+
+      const createdTransactions = [];
+
+      for (let index = 0; index < entries.length; index += 1) {
+        const entry = entries[index];
+        if (!entry || typeof entry !== 'object') {
+          return res.status(400).json({ message: 'Invalid entry format' });
+        }
+
+        const entryServiceType = entry.serviceType;
+        const lineCard = entry.lineCard;
+
+        if (!VALID_SERVICE_TYPES.has(entryServiceType)) {
+          return res.status(400).json({ message: `Invalid service type: ${entryServiceType}` });
+        }
+
+        if (!lineCard || typeof lineCard !== 'string') {
+          return res.status(400).json({ message: 'Each entry must include a line/card value' });
+        }
+
+        // Save the shared total cash-out on the first row only to keep report totals accurate.
+        const amountForRow = index === 0 ? parsedTotalCashOut : 0;
+
+        const metadata = {
+          lineCard,
+          placeOfConsumption,
+          totalCashOut: parsedTotalCashOut,
+          dailyConsumption: parsedDailyConsumption,
+          notes: typeof notes === 'string' ? notes : '',
+          mode: 'batch-line-entry',
+          isPrimaryAmountRow: index === 0,
+        };
+
+        const result = await pool.query(
+          `INSERT INTO transactions (user_id, service_type, amount, transaction_type, cash_in_hand, description)
+           VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+          [
+            userId,
+            entryServiceType,
+            amountForRow,
+            transactionType,
+            // We persist using existing schema while storing shared values in metadata.
+            amountForRow,
+            JSON.stringify(metadata),
+          ]
+        );
+
+        createdTransactions.push(result.rows[0]);
+      }
+
+      return res.status(201).json({
+        message: 'Batch transactions created successfully',
+        count: createdTransactions.length,
+        transactions: createdTransactions,
+      });
+    }
+
+    // Legacy payload mode: single transaction entry.
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { serviceType, amount, transactionType, cashInHand, description } = req.body;
-    const userId = req.user?.id;
+    if (!VALID_SERVICE_TYPES.has(serviceType)) {
+      return res.status(400).json({ message: 'Invalid service type' });
+    }
+
+    if (!VALID_TRANSACTION_TYPES.has(transactionType)) {
+      return res.status(400).json({ message: 'Invalid transaction type' });
+    }
+
+    if (Number.isNaN(Number(amount)) || Number.isNaN(Number(cashInHand))) {
+      return res.status(400).json({ message: 'Amount and cash in hand must be numeric values' });
+    }
 
     const result = await pool.query(
       `INSERT INTO transactions (user_id, service_type, amount, transaction_type, cash_in_hand, description) 
