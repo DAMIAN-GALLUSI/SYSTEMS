@@ -47,9 +47,9 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
         return res.status(400).json({ message: 'Place of consumption is required' });
       }
 
-      if (!VALID_TRANSACTION_TYPES.has(transactionType)) {
-        return res.status(400).json({ message: 'Invalid transaction type' });
-      }
+      const normalizedTransactionType = VALID_TRANSACTION_TYPES.has(transactionType)
+        ? transactionType
+        : 'withdraw';
 
       const parsedTotalCashOut = Number(totalCashOut);
       const parsedDailyConsumption = Number(dailyConsumption);
@@ -101,7 +101,7 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
             userId,
             entryServiceType,
             amountForRow,
-            transactionType,
+            normalizedTransactionType,
             // We persist using existing schema while storing shared values in metadata.
             amountForRow,
             JSON.stringify(metadata),

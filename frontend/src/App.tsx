@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import TransactionEntry from './pages/TransactionEntry';
+import RegisteredDetails from './pages/RegisteredDetails';
 import Reports from './pages/Reports';
 
 function App() {
@@ -64,6 +65,12 @@ function App() {
           path="/transactions" 
           element={
             isAuthenticated ? <TransactionEntry onLogout={handleLogout} /> : <Navigate to="/login" />
+          } 
+        />
+        <Route 
+          path="/registered-details" 
+          element={
+            isAuthenticated ? <RegisteredDetails onLogout={handleLogout} /> : <Navigate to="/login" />
           } 
         />
         <Route 
