@@ -19,6 +19,16 @@
       "cash_in_hand": 180000,
       "description": "{\"lineCard\":\"67890\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":2000,\"notes\":\"\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
       "created_at": "2026-04-07T16:40:51.720Z"
+    },
+    {
+      "id": 3,
+      "user_id": 2,
+      "service_type": "airtel",
+      "amount": 456,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 0,
+      "description": "{\"lineCard\":\"67890\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":9,\"notes\":\"\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-04-07T18:05:09.768Z"
     }
   ]
 }

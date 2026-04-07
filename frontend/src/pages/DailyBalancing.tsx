@@ -163,18 +163,19 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="section-header">Saved lines/cards</div>
-              <div className="line-table">
-                <div className="line-table-header">
+              <div className="line-table saved-lines-table">
+                <div className="line-table-header saved-lines-header">
                   <span>Service</span>
                   <span>Line/Card</span>
                   <span>Amount (TZS)</span>
                 </div>
                 {lineEntries.map((entry, index) => {
                   return (
-                    <div className="line-row" key={`${entry.serviceType}-${entry.lineCard}-${index}`}>
-                      <span className="service-name">{entry.serviceName}</span>
-                      <span className="service-name">{entry.lineCard}</span>
+                    <div className="line-row saved-lines-row" key={`${entry.serviceType}-${entry.lineCard}-${index}`}>
+                      <span className="service-name saved-service-cell">{entry.serviceName}</span>
+                      <span className="service-name saved-line-card-cell">{entry.lineCard}</span>
                       <input
+                        className="saved-amount-input"
                         type="number"
                         min="0"
                         step="0.01"

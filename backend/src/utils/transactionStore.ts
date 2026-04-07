@@ -70,3 +70,8 @@ export async function getLocalTransactionsByUser(userId: number): Promise<LocalT
   const store = await readStore();
   return store.transactions.filter((t) => t.user_id === userId);
 }
+
+export async function getAllLocalTransactions(): Promise<LocalTransactionRecord[]> {
+  const store = await readStore();
+  return store.transactions;
+}

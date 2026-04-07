@@ -68,3 +68,8 @@ export async function createLocalUser(input: {
 
   return user;
 }
+
+export async function getAllLocalUsers() {
+  const store = await readStore();
+  return store.users;
+}

@@ -175,6 +175,27 @@
   border-color: #0066cc;
 }
 
+.saved-lines-header,
+.saved-lines-row {
+  grid-template-columns: minmax(180px, 1.2fr) minmax(170px, 1fr) minmax(160px, 0.8fr);
+}
+
+.saved-service-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-line-card-cell {
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 0.02em;
+}
+
+.saved-amount-input {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .line-add-btn,
 .line-remove-btn {
   border: 1px solid #cbd5e1;
@@ -208,5 +229,10 @@
   .line-row {
     grid-template-columns: 1fr;
     gap: 0.5rem;
+  }
+
+  .saved-lines-header,
+  .saved-lines-row {
+    grid-template-columns: 1fr;
   }
 }

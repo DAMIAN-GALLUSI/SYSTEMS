@@ -1,65 +1,143 @@
 import { Response } from 'express';
 import pool from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { getAllLocalUsers } from '../utils/authStore';
+import { getAllLocalTransactions } from '../utils/transactionStore';
+
+const DB_ERROR_CODES = new Set(['28P01', '42P01', 'ECONNREFUSED', 'ENOTFOUND']);
+
+const isDatabaseFallbackError = (error: any) => {
+  return DB_ERROR_CODES.has(error?.code) || /password authentication failed|relation .* does not exist|connect ECONNREFUSED/i.test(error?.message || '');
+};
+
+const parseDate = (value: any) => {
+  if (!value || typeof value !== 'string') {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const buildSummary = (rows: any[]) => {
+  const totalDeposits = rows
+    .filter((t: any) => t.transaction_type === 'deposit')
+    .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0);
+  const totalWithdrawals = rows
+    .filter((t: any) => t.transaction_type === 'withdraw')
+    .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0);
+
+  return {
+    totalTransactions: rows.length,
+    totalDeposits,
+    totalWithdrawals,
+    netProfit: totalDeposits - totalWithdrawals,
+  };
+};
+
+const getReportRows = async (req: AuthRequest) => {
+  const { startDate, endDate, serviceType } = req.query;
+
+  let query = `
+    SELECT
+      t.id,
+      t.service_type,
+      t.amount,
+      t.transaction_type,
+      t.cash_in_hand,
+      t.description,
+      t.created_at,
+      u.full_name as employee_name
+    FROM transactions t
+    JOIN users u ON t.user_id = u.id
+    WHERE 1=1
+  `;
+
+  const params: any[] = [];
+
+  if (startDate) {
+    params.push(startDate);
+    query += ` AND t.created_at >= $${params.length}`;
+  }
+
+  if (endDate) {
+    params.push(endDate);
+    query += ` AND t.created_at <= $${params.length}`;
+  }
+
+  if (serviceType) {
+    params.push(serviceType);
+    query += ` AND t.service_type = $${params.length}`;
+  }
+
+  query += ' ORDER BY t.created_at DESC';
+
+  try {
+    const result = await pool.query(query, params);
+    return result.rows;
+  } catch (dbError: any) {
+    if (!isDatabaseFallbackError(dbError)) {
+      throw dbError;
+    }
+
+    console.warn('Database unavailable for reports, using local transaction store.');
+
+    const [localUsers, localTransactions] = await Promise.all([
+      getAllLocalUsers(),
+      getAllLocalTransactions(),
+    ]);
+
+    const start = parseDate(startDate);
+    const end = parseDate(endDate);
+    const service = typeof serviceType === 'string' ? serviceType : '';
+
+    const userById = new Map(localUsers.map((user) => [user.id, user]));
+
+    const filtered = localTransactions.filter((transaction) => {
+      const createdAt = new Date(transaction.created_at);
+
+      if (start && createdAt < start) {
+        return false;
+      }
+
+      if (end && createdAt > end) {
+        return false;
+      }
+
+      if (service && transaction.service_type !== service) {
+        return false;
+      }
+
+      return true;
+    });
+
+    const rows = filtered
+      .map((transaction) => {
+        const user = userById.get(transaction.user_id);
+        return {
+          id: transaction.id,
+          service_type: transaction.service_type,
+          amount: transaction.amount,
+          transaction_type: transaction.transaction_type,
+          cash_in_hand: transaction.cash_in_hand,
+          description: transaction.description,
+          created_at: transaction.created_at,
+          employee_name: user?.full_name || 'Unknown Employee',
+        };
+      })
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    return rows;
+  }
+};
 
 export const generateReport = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.id;
-    const { startDate, endDate, serviceType } = req.query;
-
-    let query = `
-      SELECT 
-        t.id,
-        t.service_type,
-        t.amount,
-        t.transaction_type,
-        t.cash_in_hand,
-        t.description,
-        t.created_at,
-        u.full_name as employee_name
-      FROM transactions t
-      JOIN users u ON t.user_id = u.id
-      WHERE 1=1
-    `;
-
-    const params: any[] = [];
-
-    if (startDate) {
-      params.push(startDate);
-      query += ` AND t.created_at >= $${params.length}`;
-    }
-
-    if (endDate) {
-      params.push(endDate);
-      query += ` AND t.created_at <= $${params.length}`;
-    }
-
-    if (serviceType) {
-      params.push(serviceType);
-      query += ` AND t.service_type = $${params.length}`;
-    }
-
-    query += ' ORDER BY t.created_at DESC';
-
-    const result = await pool.query(query, params);
-
-    // Calculate summary
-    const totalDeposits = result.rows
-      .filter((t: any) => t.transaction_type === 'deposit')
-      .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
-    const totalWithdrawals = result.rows
-      .filter((t: any) => t.transaction_type === 'withdraw')
-      .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
-
-    const summary = {
-      totalTransactions: result.rows.length,
-      totalDeposits,
-      totalWithdrawals,
-      netProfit: totalDeposits - totalWithdrawals,
-    };
+    const rows = await getReportRows(req);
+    const summary = buildSummary(rows);
 
     res.json({
-      transactions: result.rows,
+      transactions: rows,
       summary,
       generatedAt: new Date().toISOString()
     });
@@ -71,50 +149,13 @@ export const generateReport = async (req: AuthRequest, res: Response) => {
 
 export const downloadReport = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.id;
-    const { startDate, endDate, serviceType } = req.query;
-
-    let query = `
-      SELECT 
-        t.id,
-        t.service_type,
-        t.amount,
-        t.transaction_type,
-        t.cash_in_hand,
-        t.description,
-        t.created_at,
-        u.full_name as employee_name
-      FROM transactions t
-      JOIN users u ON t.user_id = u.id
-      WHERE 1=1
-    `;
-
-    const params: any[] = [];
-
-    if (startDate) {
-      params.push(startDate);
-      query += ` AND t.created_at >= $${params.length}`;
-    }
-
-    if (endDate) {
-      params.push(endDate);
-      query += ` AND t.created_at <= $${params.length}`;
-    }
-
-    if (serviceType) {
-      params.push(serviceType);
-      query += ` AND t.service_type = $${params.length}`;
-    }
-
-    query += ' ORDER BY t.created_at DESC';
-
-    const result = await pool.query(query, params);
+    const rows = await getReportRows(req);
 
     // Generate CSV
     const headers = ['ID', 'Service Type', 'Amount', 'Type', 'Cash in Hand', 'Description', 'Employee', 'Date'];
     const csvRows = [headers.join(',')];
 
-    result.rows.forEach((row: any) => {
+    rows.forEach((row: any) => {
       const values = [
         row.id,
         row.service_type,

@@ -9,6 +9,66 @@
   padding: 2rem;
 }
 
+.report-error {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-weight: 600;
+}
+
+.period-overview {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.period-overview h2 {
+  margin: 0 0 0.4rem;
+  color: #1f2937;
+}
+
+.period-overview p {
+  margin: 0;
+  color: #4b5563;
+}
+
+.period-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.period-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.period-header h2 {
+  margin: 0 0 0.25rem;
+  color: #111827;
+}
+
+.period-header p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.empty-report,
+.empty-row {
+  text-align: center;
+  color: #6b7280;
+  padding: 1rem;
+}
+
 .reports-header {
   margin-bottom: 2rem;
 }
@@ -153,6 +213,11 @@
   margin-bottom: 1.5rem;
 }
 
+.transactions-table-section h3 {
+  margin: 0 0 1rem;
+  color: #1f2937;
+}
+
 .table-container {
   overflow-x: auto;
 }
@@ -220,4 +285,24 @@
 .transactions-table td.negative {
   color: #ef4444;
   font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .reports-content {
+    padding: 1rem;
+  }
+
+  .period-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-actions {
+    flex-direction: column;
+  }
+
+  .btn-generate,
+  .btn-download {
+    width: 100%;
+  }
 }
