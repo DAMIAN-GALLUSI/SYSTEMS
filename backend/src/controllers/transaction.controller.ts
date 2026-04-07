@@ -48,10 +48,13 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
         : 'withdraw';
 
       const parsedTotalCashOut = Number(totalCashOut);
+      const parsedCashInHand = Number(cashInHand);
       const parsedDailyConsumption = Number(dailyConsumption);
       const safeTotalCashOut = Number.isNaN(parsedTotalCashOut) || parsedTotalCashOut < 0 ? 0 : parsedTotalCashOut;
+      const safeCashInHand = Number.isNaN(parsedCashInHand) || parsedCashInHand < 0 ? 0 : parsedCashInHand;
       const safeDailyConsumption = Number.isNaN(parsedDailyConsumption) || parsedDailyConsumption < 0 ? 0 : parsedDailyConsumption;
       const safePlaceOfConsumption = typeof placeOfConsumption === 'string' ? placeOfConsumption : '';
+      const hasEntryAmounts = entries.some((entry: any) => entry && entry.amount !== undefined && entry.amount !== null && entry.amount !== '');
 
       const createdTransactions = [];
 
@@ -72,8 +75,18 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
           return res.status(400).json({ message: 'Each entry must include a line/card value' });
         }
 
-        // Save the shared total cash-out on the first row only to keep report totals accurate.
-        const amountForRow = index === 0 ? safeTotalCashOut : 0;
+        let amountForRow = 0;
+
+        if (hasEntryAmounts) {
+          const parsedEntryAmount = Number(entry.amount);
+          if (Number.isNaN(parsedEntryAmount) || parsedEntryAmount < 0) {
+            return res.status(400).json({ message: 'Each entry must include a valid non-negative amount' });
+          }
+          amountForRow = parsedEntryAmount;
+        } else {
+          // Backward compatibility with previous shared-total payload.
+          amountForRow = index === 0 ? safeTotalCashOut : 0;
+        }
 
         const metadata = {
           lineCard,
@@ -81,8 +94,9 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
           totalCashOut: safeTotalCashOut,
           dailyConsumption: safeDailyConsumption,
           notes: typeof notes === 'string' ? notes : '',
-          mode: 'batch-line-entry',
-          isPrimaryAmountRow: index === 0,
+          mode: 'daily-balancing-entry',
+          hasEntryAmounts,
+          isPrimaryAmountRow: !hasEntryAmounts && index === 0,
         };
 
         const result = await pool.query(
@@ -93,8 +107,7 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
             entryServiceType,
             amountForRow,
             normalizedTransactionType,
-            // We persist using existing schema while storing shared values in metadata.
-            amountForRow,
+            safeCashInHand,
             JSON.stringify(metadata),
           ]
         );

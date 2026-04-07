@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { transactionAPI } from '../services/api';
+import { SERVICES } from '../utils/constants';
 import { ServiceType } from '../types';
 import './TransactionEntry.css';
 
@@ -9,35 +10,24 @@ interface RegisteredDetailsProps {
 }
 
 interface LineEntry {
-  serviceName: string;
+  serviceType: ServiceType;
   lineCard: string;
 }
 
+interface SavedRegisteredDetails {
+  savedAt: string;
+  entries: LineEntry[];
+}
+
+const REGISTERED_DETAILS_STORAGE_KEY = 'registered-line-details';
+
 const createEmptyEntry = (): LineEntry => ({
-  serviceName: '',
+  serviceType: 'vodacom',
   lineCard: '',
 });
 
-const normalizeServiceType = (serviceName: string): ServiceType | null => {
-  const normalized = serviceName.trim().toLowerCase().replace(/\s+/g, ' ');
-  const compact = normalized.replace(/[_\-]/g, ' ');
-
-  if (compact.includes('lipa') && compact.includes('vodacom')) return 'lipa_namba_vodacom';
-  if (compact.includes('lipa') && compact.includes('airtel')) return 'lipa_namba_airtel';
-  if (compact.includes('lipa') && compact.includes('airtell')) return 'lipa_namba_airtel';
-  if (compact.includes('lipa') && compact.includes('tigo')) return 'lipa_namba_tigo';
-  if (compact.includes('lipa') && compact.includes('halotel')) return 'lipa_namba_halotel';
-
-  if (compact.includes('vodacom')) return 'vodacom';
-  if (compact.includes('airtel') || compact.includes('airtell')) return 'airtel';
-  if (compact.includes('tigo')) return 'tigo';
-  if (compact.includes('halotel')) return 'halotel';
-
-  // Default bucket keeps save flow manual and non-blocking.
-  return 'vodacom';
-};
-
 const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
+  const navigate = useNavigate();
   const [entries, setEntries] = useState<LineEntry[]>([createEmptyEntry()]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -65,7 +55,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
     setMessage({ type: '', text: '' });
     setLoading(true);
 
-    const hasInvalidRows = entries.some((entry) => !entry.serviceName.trim() || !entry.lineCard.trim());
+    const hasInvalidRows = entries.some((entry) => !entry.lineCard.trim());
 
     if (
       hasInvalidRows
@@ -73,31 +63,29 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       setLoading(false);
       setMessage({
         type: 'error',
-        text: 'Please fill service name and line/card for each row.',
+        text: 'Please fill line/card for each row.',
       });
       return;
     }
 
-    const mappedEntries = entries.map((entry) => ({
-      serviceType: normalizeServiceType(entry.serviceName),
-      lineCard: entry.lineCard.trim(),
-      serviceName: entry.serviceName.trim(),
-    }));
-
     try {
-      await transactionAPI.create({
-        entries: mappedEntries.map((entry) => ({
+      const payload: SavedRegisteredDetails = {
+        savedAt: new Date().toISOString(),
+        entries: entries.map((entry) => ({
           serviceType: entry.serviceType,
           lineCard: entry.lineCard.trim(),
         })),
-      });
+      };
 
-      setMessage({ type: 'success', text: 'Registered details saved successfully!' });
+      localStorage.setItem(REGISTERED_DETAILS_STORAGE_KEY, JSON.stringify(payload));
+
+      setMessage({ type: 'success', text: 'Registered details saved. Continue to Daily Balancing.' });
       setEntries([createEmptyEntry()]);
+      navigate('/daily-balancing');
     } catch (error: any) {
       setMessage({
         type: 'error',
-        text: error.response?.data?.message || 'Failed to save registered details',
+        text: error?.message || 'Failed to save registered details',
       });
     } finally {
       setLoading(false);
@@ -118,20 +106,23 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
             <div className="section-header">register lines, your cash and uses of the day</div>
             <div className="line-table">
               <div className="line-table-header">
-                <span>Service Name</span>
+                <span>Service</span>
                 <span>Telephone Line / Card</span>
                 <span>Action</span>
               </div>
               {entries.map((entry, index) => {
                 return (
                   <div className="line-row" key={`line-row-${index}`}>
-                    <input
-                      type="text"
-                      value={entry.serviceName}
-                      onChange={(e) => handleEntryChange(index, 'serviceName', e.target.value)}
-                      placeholder="Example: Vodacom"
-                      required
-                    />
+                    <select
+                      value={entry.serviceType}
+                      onChange={(e) => handleEntryChange(index, 'serviceType', e.target.value as ServiceType)}
+                    >
+                      {SERVICES.map((service) => (
+                        <option key={service.id} value={service.id}>
+                          {service.name}
+                        </option>
+                      ))}
+                    </select>
                     <input
                       type="text"
                       value={entry.lineCard}

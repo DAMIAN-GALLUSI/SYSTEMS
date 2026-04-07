@@ -34,6 +34,12 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
           >
             Registered Details
           </Link>
+          <Link
+            to="/daily-balancing"
+            className={location.pathname === '/daily-balancing' ? 'active' : ''}
+          >
+            Daily Balancing
+          </Link>
           <Link 
             to="/reports" 
             className={location.pathname === '/reports' ? 'active' : ''}

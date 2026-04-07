@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import TransactionEntry from './pages/TransactionEntry';
 import RegisteredDetails from './pages/RegisteredDetails';
+import DailyBalancing from './pages/DailyBalancing';
 import Reports from './pages/Reports';
 
 function App() {
@@ -72,6 +73,12 @@ function App() {
           element={
             isAuthenticated ? <RegisteredDetails onLogout={handleLogout} /> : <Navigate to="/login" />
           } 
+        />
+        <Route
+          path="/daily-balancing"
+          element={
+            isAuthenticated ? <DailyBalancing onLogout={handleLogout} /> : <Navigate to="/login" />
+          }
         />
         <Route 
           path="/reports" 
