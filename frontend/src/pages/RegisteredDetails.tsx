@@ -10,21 +10,48 @@ interface RegisteredDetailsProps {
 }
 
 interface LineEntry {
+  serviceInput: string;
+  lineCard: string;
+}
+
+interface SavedLineEntry {
   serviceType: ServiceType;
+  serviceName: string;
   lineCard: string;
 }
 
 interface SavedRegisteredDetails {
   savedAt: string;
-  entries: LineEntry[];
+  entries: SavedLineEntry[];
 }
 
 const REGISTERED_DETAILS_STORAGE_KEY = 'registered-line-details';
 
 const createEmptyEntry = (): LineEntry => ({
-  serviceType: 'vodacom',
+  serviceInput: '',
   lineCard: '',
 });
+
+const normalizeValue = (value: string) => value.trim().toLowerCase().replace(/\s+/g, ' ');
+
+const resolveServiceType = (serviceInput: string): ServiceType | null => {
+  const normalized = normalizeValue(serviceInput);
+  if (!normalized) {
+    return null;
+  }
+
+  const directMatch = SERVICES.find((service) => normalizeValue(service.id) === normalized);
+  if (directMatch) {
+    return directMatch.id;
+  }
+
+  const nameMatch = SERVICES.find((service) => normalizeValue(service.name) === normalized);
+  if (nameMatch) {
+    return nameMatch.id;
+  }
+
+  return null;
+};
 
 const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -55,15 +82,13 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
     setMessage({ type: '', text: '' });
     setLoading(true);
 
-    const hasInvalidRows = entries.some((entry) => !entry.lineCard.trim());
+    const invalidRow = entries.find((entry) => !resolveServiceType(entry.serviceInput) || !entry.lineCard.trim());
 
-    if (
-      hasInvalidRows
-    ) {
+    if (invalidRow) {
       setLoading(false);
       setMessage({
         type: 'error',
-        text: 'Please fill line/card for each row.',
+        text: 'Please enter a valid service name and fill line/card for each row.',
       });
       return;
     }
@@ -72,7 +97,8 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       const payload: SavedRegisteredDetails = {
         savedAt: new Date().toISOString(),
         entries: entries.map((entry) => ({
-          serviceType: entry.serviceType,
+          serviceType: resolveServiceType(entry.serviceInput) as ServiceType,
+          serviceName: entry.serviceInput.trim(),
           lineCard: entry.lineCard.trim(),
         })),
       };
@@ -97,8 +123,8 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       <Navbar onLogout={onLogout} />
       <div className="transaction-content">
         <div className="transaction-card">
-          <h1>Registered Details</h1>
-          <p className="subtitle">Manually enter service name and line/card, then save registered details.</p>
+          <h1>Register Your Details</h1>
+          <p className="subtitle">Type the service name, then add each line/card you want to register.</p>
 
           {message.text && <div className={`message ${message.type}`}>{message.text}</div>}
 
@@ -113,16 +139,13 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
               {entries.map((entry, index) => {
                 return (
                   <div className="line-row" key={`line-row-${index}`}>
-                    <select
-                      value={entry.serviceType}
-                      onChange={(e) => handleEntryChange(index, 'serviceType', e.target.value as ServiceType)}
-                    >
-                      {SERVICES.map((service) => (
-                        <option key={service.id} value={service.id}>
-                          {service.name}
-                        </option>
-                      ))}
-                    </select>
+                    <input
+                      type="text"
+                      value={entry.serviceInput}
+                      onChange={(e) => handleEntryChange(index, 'serviceInput', e.target.value)}
+                      placeholder="Service name (e.g. Vodacom, Airtel, Tigo)"
+                      required
+                    />
                     <input
                       type="text"
                       value={entry.lineCard}

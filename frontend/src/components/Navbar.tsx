@@ -32,7 +32,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
             to="/registered-details" 
             className={location.pathname === '/registered-details' ? 'active' : ''}
           >
-            Registered Details
+            Register Your Details
           </Link>
           <Link
             to="/daily-balancing"

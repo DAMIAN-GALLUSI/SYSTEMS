@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { transactionAPI } from '../services/api';
 import { ServiceType } from '../types';
-import { getServiceInfo } from '../utils/constants';
 import './TransactionEntry.css';
 
 interface DailyBalancingProps {
@@ -12,6 +11,7 @@ interface DailyBalancingProps {
 
 interface RegisteredLineEntry {
   serviceType: ServiceType;
+  serviceName: string;
   lineCard: string;
 }
 
@@ -51,6 +51,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
       setLineEntries(
         parsed.entries.map((entry) => ({
           serviceType: entry.serviceType,
+          serviceName: entry.serviceName || entry.serviceType,
           lineCard: entry.lineCard,
           amount: '',
         }))
@@ -150,7 +151,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
             <>
               <div className="message error">No registered details found yet.</div>
               <button type="button" className="btn-submit" onClick={() => navigate('/registered-details')}>
-                Go to Registered Details
+                Go to Register Your Details
               </button>
             </>
           ) : (
@@ -163,11 +164,9 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                   <span>Amount (TZS)</span>
                 </div>
                 {lineEntries.map((entry, index) => {
-                  const serviceInfo = getServiceInfo(entry.serviceType);
-
                   return (
                     <div className="line-row" key={`${entry.serviceType}-${entry.lineCard}-${index}`}>
-                      <span className="service-name">{serviceInfo.name}</span>
+                      <span className="service-name">{entry.serviceName}</span>
                       <span className="service-name">{entry.lineCard}</span>
                       <input
                         type="number"

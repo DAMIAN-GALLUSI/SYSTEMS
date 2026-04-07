@@ -16,10 +16,10 @@ const TransactionEntry: React.FC<TransactionEntryProps> = ({ onLogout }) => {
       <div className="transaction-content">
         <div className="transaction-card">
           <h1>Record Transactions</h1>
-          <p className="subtitle">register lines, your cash and uses of the day</p>
+          <p className="subtitle">Start by registering only the lines/cards you want to use today.</p>
 
           <button type="button" className="btn-submit" onClick={() => navigate('/registered-details')}>
-            register lines, your cash and uses of the day
+            Register Your Details
           </button>
         </div>
       </div>
