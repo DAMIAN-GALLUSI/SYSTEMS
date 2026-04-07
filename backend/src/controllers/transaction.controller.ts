@@ -2,6 +2,13 @@ import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import pool from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { createLocalTransaction } from '../utils/transactionStore';
+
+const DB_ERROR_CODES = new Set(['28P01', '42P01', 'ECONNREFUSED', 'ENOTFOUND']);
+
+const isDatabaseFallbackError = (error: any) => {
+  return DB_ERROR_CODES.has(error?.code) || /password authentication failed|relation .* does not exist|connect ECONNREFUSED/i.test(error?.message || '');
+};
 
 const VALID_SERVICE_TYPES = new Set([
   'vodacom',
@@ -58,68 +65,116 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
 
       const createdTransactions = [];
 
-      for (let index = 0; index < entries.length; index += 1) {
-        const entry = entries[index];
-        if (!entry || typeof entry !== 'object') {
-          return res.status(400).json({ message: 'Invalid entry format' });
-        }
-
-        const entryServiceType = entry.serviceType;
-        const lineCard = entry.lineCard;
-
-        if (!VALID_SERVICE_TYPES.has(entryServiceType)) {
-          return res.status(400).json({ message: `Invalid service type: ${entryServiceType}` });
-        }
-
-        if (!lineCard || typeof lineCard !== 'string') {
-          return res.status(400).json({ message: 'Each entry must include a line/card value' });
-        }
-
-        let amountForRow = 0;
-
-        if (hasEntryAmounts) {
-          const parsedEntryAmount = Number(entry.amount);
-          if (Number.isNaN(parsedEntryAmount) || parsedEntryAmount < 0) {
-            return res.status(400).json({ message: 'Each entry must include a valid non-negative amount' });
+      try {
+        for (let index = 0; index < entries.length; index += 1) {
+          const entry = entries[index];
+          if (!entry || typeof entry !== 'object') {
+            return res.status(400).json({ message: 'Invalid entry format' });
           }
-          amountForRow = parsedEntryAmount;
-        } else {
-          // Backward compatibility with previous shared-total payload.
-          amountForRow = index === 0 ? safeTotalCashOut : 0;
+
+          const entryServiceType = entry.serviceType;
+          const lineCard = entry.lineCard;
+
+          if (!VALID_SERVICE_TYPES.has(entryServiceType)) {
+            return res.status(400).json({ message: `Invalid service type: ${entryServiceType}` });
+          }
+
+          if (!lineCard || typeof lineCard !== 'string') {
+            return res.status(400).json({ message: 'Each entry must include a line/card value' });
+          }
+
+          let amountForRow = 0;
+
+          if (hasEntryAmounts) {
+            const parsedEntryAmount = Number(entry.amount);
+            if (Number.isNaN(parsedEntryAmount) || parsedEntryAmount < 0) {
+              return res.status(400).json({ message: 'Each entry must include a valid non-negative amount' });
+            }
+            amountForRow = parsedEntryAmount;
+          } else {
+            // Backward compatibility with previous shared-total payload.
+            amountForRow = index === 0 ? safeTotalCashOut : 0;
+          }
+
+          const metadata = {
+            lineCard,
+            placeOfConsumption: safePlaceOfConsumption,
+            totalCashOut: safeTotalCashOut,
+            dailyConsumption: safeDailyConsumption,
+            notes: typeof notes === 'string' ? notes : '',
+            mode: 'daily-balancing-entry',
+            hasEntryAmounts,
+            isPrimaryAmountRow: !hasEntryAmounts && index === 0,
+          };
+
+          const result = await pool.query(
+            `INSERT INTO transactions (user_id, service_type, amount, transaction_type, cash_in_hand, description)
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [
+              userId,
+              entryServiceType,
+              amountForRow,
+              normalizedTransactionType,
+              safeCashInHand,
+              JSON.stringify(metadata),
+            ]
+          );
+
+          createdTransactions.push(result.rows[0]);
         }
 
-        const metadata = {
-          lineCard,
-          placeOfConsumption: safePlaceOfConsumption,
-          totalCashOut: safeTotalCashOut,
-          dailyConsumption: safeDailyConsumption,
-          notes: typeof notes === 'string' ? notes : '',
-          mode: 'daily-balancing-entry',
-          hasEntryAmounts,
-          isPrimaryAmountRow: !hasEntryAmounts && index === 0,
-        };
+        return res.status(201).json({
+          message: 'Batch transactions created successfully',
+          count: createdTransactions.length,
+          transactions: createdTransactions,
+        });
+      } catch (dbError: any) {
+        if (!isDatabaseFallbackError(dbError)) {
+          throw dbError;
+        }
 
-        const result = await pool.query(
-          `INSERT INTO transactions (user_id, service_type, amount, transaction_type, cash_in_hand, description)
-           VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-          [
+        console.warn('Database unavailable for transaction creation, using local transaction store.');
+
+        // Fallback to local storage
+        const localCreatedTransactions = [];
+        for (let index = 0; index < entries.length; index += 1) {
+          const entry = entries[index];
+          const entryServiceType = entry.serviceType;
+          let amountForRow = 0;
+
+          if (hasEntryAmounts) {
+            amountForRow = Number(entry.amount);
+          } else {
+            amountForRow = index === 0 ? safeTotalCashOut : 0;
+          }
+
+          const localTransaction = await createLocalTransaction({
             userId,
-            entryServiceType,
-            amountForRow,
-            normalizedTransactionType,
-            safeCashInHand,
-            JSON.stringify(metadata),
-          ]
-        );
+            serviceType: entryServiceType,
+            amount: amountForRow,
+            transactionType: normalizedTransactionType,
+            cashInHand: safeCashInHand,
+            description: JSON.stringify({
+              lineCard: entry.lineCard,
+              placeOfConsumption: safePlaceOfConsumption,
+              totalCashOut: safeTotalCashOut,
+              dailyConsumption: safeDailyConsumption,
+              notes: typeof notes === 'string' ? notes : '',
+              mode: 'daily-balancing-entry',
+              hasEntryAmounts,
+              isPrimaryAmountRow: !hasEntryAmounts && index === 0,
+            }),
+          });
 
-        createdTransactions.push(result.rows[0]);
+          localCreatedTransactions.push(localTransaction);
+        }
+
+        return res.status(201).json({
+          message: 'Batch transactions created successfully (saved locally)',
+          count: localCreatedTransactions.length,
+          transactions: localCreatedTransactions,
+        });
       }
-
-      return res.status(201).json({
-        message: 'Batch transactions created successfully',
-        count: createdTransactions.length,
-        transactions: createdTransactions,
-      });
     }
 
     // Legacy payload mode: single transaction entry.
