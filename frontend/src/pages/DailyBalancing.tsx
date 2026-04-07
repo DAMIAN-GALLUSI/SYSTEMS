@@ -61,12 +61,18 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
     }
   }, []);
 
-  const totalAmount = useMemo(() => {
+  const totalLineAmount = useMemo(() => {
     return lineEntries.reduce((sum, entry) => {
       const parsedAmount = Number(entry.amount);
       return sum + (Number.isNaN(parsedAmount) ? 0 : parsedAmount);
     }, 0);
   }, [lineEntries]);
+
+  const totalAvailableMoney = useMemo(() => {
+    const parsedCash = Number(cashInHand);
+    const safeCash = Number.isNaN(parsedCash) ? 0 : parsedCash;
+    return safeCash + totalLineAmount;
+  }, [cashInHand, totalLineAmount]);
 
   const handleAmountChange = (index: number, value: string) => {
     const nextEntries = [...lineEntries];
@@ -231,7 +237,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                 />
               </div>
 
-              <div className="section-header">Total line amount: {new Intl.NumberFormat('en-TZ').format(totalAmount)} TZS</div>
+              <div className="section-header">Total available money: {new Intl.NumberFormat('en-TZ').format(totalAvailableMoney)} TZS</div>
 
               <button type="submit" disabled={loading} className="btn-submit">
                 {loading ? 'Saving...' : 'Save Daily Balancing'}
