@@ -49,6 +49,46 @@
       "cash_in_hand": 123,
       "description": "{\"lineCard\":\"222\",\"placeOfConsumption\":\"9002\",\"totalCashOut\":0,\"dailyConsumption\":4554.99,\"notes\":\"\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
       "created_at": "2026-04-10T14:37:01.152Z"
+    },
+    {
+      "id": 6,
+      "user_id": 2,
+      "service_type": "vodacom",
+      "amount": 23344,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 344,
+      "description": "{\"lineCard\":\"111\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":2333.99,\"notes\":\"\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-04-10T16:09:12.147Z"
+    },
+    {
+      "id": 7,
+      "user_id": 2,
+      "service_type": "airtel",
+      "amount": 44554.98,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 344,
+      "description": "{\"lineCard\":\"222\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":2333.99,\"notes\":\"\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-04-10T16:09:12.167Z"
+    },
+    {
+      "id": 8,
+      "user_id": 2,
+      "service_type": "vodacom",
+      "amount": 12333,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 234,
+      "description": "{\"lineCard\":\"111\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":564,\"notes\":\"\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-04-10T16:09:28.002Z"
+    },
+    {
+      "id": 9,
+      "user_id": 2,
+      "service_type": "airtel",
+      "amount": 44,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 234,
+      "description": "{\"lineCard\":\"222\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":564,\"notes\":\"\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-04-10T16:09:28.011Z"
     }
   ]
 }

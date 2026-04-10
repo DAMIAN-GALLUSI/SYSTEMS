@@ -20,19 +20,29 @@ interface SavedRegisteredDetails {
   entries: RegisteredLineEntry[];
 }
 
+interface SavedDailyBalancing {
+  savedAt: string;
+  entries: LineAmountEntry[];
+  cashInHand: string;
+  dailyConsumption: string;
+  notes: string;
+}
+
 interface LineAmountEntry extends RegisteredLineEntry {
   amount: string;
 }
 
 const REGISTERED_DETAILS_STORAGE_KEY = 'registered-line-details';
+const SAVED_DAILY_BALANCING_STORAGE_KEY = 'saved-daily-balancing';
 
 const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
   const navigate = useNavigate();
   const [lineEntries, setLineEntries] = useState<LineAmountEntry[]>([]);
   const [cashInHand, setCashInHand] = useState('');
   const [dailyConsumption, setDailyConsumption] = useState('');
-  const [useOfTheDay, setUseOfTheDay] = useState('');
   const [notes, setNotes] = useState('');
+  const [savedDailyBalancing, setSavedDailyBalancing] = useState<SavedDailyBalancing | null>(null);
+  const [showSavedDailyBalancing, setShowSavedDailyBalancing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -58,6 +68,24 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
       );
     } catch {
       setLineEntries([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    const raw = localStorage.getItem(SAVED_DAILY_BALANCING_STORAGE_KEY);
+    if (!raw) {
+      return;
+    }
+
+    try {
+      const parsed: SavedDailyBalancing = JSON.parse(raw);
+      if (!Array.isArray(parsed.entries)) {
+        return;
+      }
+
+      setSavedDailyBalancing(parsed);
+    } catch {
+      setSavedDailyBalancing(null);
     }
   }, []);
 
@@ -114,6 +142,17 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
     setLoading(true);
 
     try {
+      const savedPayload: SavedDailyBalancing = {
+        savedAt: new Date().toISOString(),
+        entries: lineEntries.map((entry) => ({
+          ...entry,
+          amount: String(entry.amount),
+        })),
+        cashInHand: String(parsedCash),
+        dailyConsumption: String(parsedConsumption),
+        notes: notes.trim(),
+      };
+
       await transactionAPI.create({
         transactionType: 'withdraw',
         entries: lineEntries.map((entry) => ({
@@ -123,15 +162,17 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
         })),
         cashInHand: parsedCash,
         dailyConsumption: parsedConsumption,
-        placeOfConsumption: useOfTheDay.trim(),
         notes: notes.trim(),
       });
+
+      localStorage.setItem(SAVED_DAILY_BALANCING_STORAGE_KEY, JSON.stringify(savedPayload));
+      setSavedDailyBalancing(savedPayload);
+      setShowSavedDailyBalancing(true);
 
       setMessage({ type: 'success', text: 'Daily balancing saved successfully.' });
       setLineEntries((current) => current.map((entry) => ({ ...entry, amount: '' })));
       setCashInHand('');
       setDailyConsumption('');
-      setUseOfTheDay('');
       setNotes('');
     } catch (error: any) {
       setMessage({
@@ -149,7 +190,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
       <div className="transaction-content">
         <div className="transaction-card">
           <h1>Daily Balancing</h1>
-          <p className="subtitle">Enter each line amount, your cash in hand, and daily uses.</p>
+          <p className="subtitle">Enter each line amount, your cash in hand, and use of the day.</p>
 
           {message.text && <div className={`message ${message.type}`}>{message.text}</div>}
 
@@ -203,7 +244,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="dailyConsumption">Uses of the day (TZS)</label>
+                  <label htmlFor="dailyConsumption">Use of the day (TZS)</label>
                   <input
                     id="dailyConsumption"
                     type="number"
@@ -217,17 +258,6 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="useOfTheDay">Use of the day</label>
-                <input
-                  id="useOfTheDay"
-                  type="text"
-                  placeholder="Example: Shop restock, transport, bundles"
-                  value={useOfTheDay}
-                  onChange={(e) => setUseOfTheDay(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
                 <label htmlFor="notes">Notes (optional)</label>
                 <textarea
                   id="notes"
@@ -238,11 +268,47 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                 />
               </div>
 
-              <div className="section-header">Total available money: {new Intl.NumberFormat('en-TZ').format(totalAvailableMoney)} TZS</div>
+              <div className="section-header">The current amount of money in circulation within the business: {new Intl.NumberFormat('en-TZ').format(totalAvailableMoney)} TZS</div>
 
               <button type="submit" disabled={loading} className="btn-submit">
                 {loading ? 'Saving...' : 'Save Daily Balancing'}
               </button>
+
+              {savedDailyBalancing && (
+                <>
+                  <button
+                    type="button"
+                    className="line-add-btn"
+                    onClick={() => setShowSavedDailyBalancing((current) => !current)}
+                  >
+                    {showSavedDailyBalancing ? 'Hide Saved Daily Balancing' : 'Open Saved Daily Balancing'}
+                  </button>
+
+                  {showSavedDailyBalancing && (
+                    <div className="saved-report-panel" style={{ marginTop: '1rem' }}>
+                      <div className="section-header">Saved Daily Balancing</div>
+                      <p><strong>Saved at:</strong> {new Date(savedDailyBalancing.savedAt).toLocaleString('en-TZ')}</p>
+                      <p><strong>Cash in hand:</strong> {new Intl.NumberFormat('en-TZ').format(Number(savedDailyBalancing.cashInHand))} TZS</p>
+                      <p><strong>Use of the day:</strong> {new Intl.NumberFormat('en-TZ').format(Number(savedDailyBalancing.dailyConsumption))} TZS</p>
+                      {savedDailyBalancing.notes && <p><strong>Notes:</strong> {savedDailyBalancing.notes}</p>}
+                      <div className="line-table saved-lines-table" style={{ marginTop: '1rem' }}>
+                        <div className="line-table-header saved-lines-header">
+                          <span>Service</span>
+                          <span>Line/Card</span>
+                          <span>Amount (TZS)</span>
+                        </div>
+                        {savedDailyBalancing.entries.map((entry, index) => (
+                          <div className="line-row saved-lines-row" key={`${entry.serviceType}-${entry.lineCard}-${index}`}>
+                            <span className="service-name saved-service-cell">{entry.serviceName}</span>
+                            <span className="service-name saved-line-card-cell">{entry.lineCard}</span>
+                            <span className="saved-amount-input">{new Intl.NumberFormat('en-TZ').format(Number(entry.amount))}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </form>
           )}
         </div>
