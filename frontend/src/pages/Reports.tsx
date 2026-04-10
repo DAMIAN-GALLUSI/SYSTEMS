@@ -31,10 +31,10 @@ interface PeriodConfig {
 }
 
 const PERIODS: PeriodConfig[] = [
-  { key: 'day', title: 'Daily Report', description: 'Summary and transactions for today' },
-  { key: 'week', title: 'Weekly Report', description: 'Summary and transactions for the last 7 days' },
-  { key: 'month', title: 'Monthly Report', description: 'Summary and transactions for this month' },
-  { key: 'year', title: 'Yearly Report', description: 'Summary and transactions for this year' },
+  { key: 'day', title: 'Daily Report Area', description: 'Summary and transactions for today' },
+  { key: 'week', title: 'Weekly Report Area', description: 'Summary and transactions for the last 7 days' },
+  { key: 'month', title: 'Monthly Report Area', description: 'Summary and transactions for this month' },
+  { key: 'year', title: 'Yearly Report Area', description: 'Summary and transactions for this year' },
 ];
 
 const normalizeTransaction = (transaction: any): Transaction => ({
@@ -205,7 +205,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
       <div className="reports-content">
         <div className="reports-header">
           <h1>Business Reports</h1>
-          <p>Daily, weekly, monthly, and yearly report sections with PDF downloads</p>
+          <p>Daily, weekly, monthly, and yearly report areas with PDF download buttons for sharing and storage</p>
         </div>
 
         <div className="filters-section">

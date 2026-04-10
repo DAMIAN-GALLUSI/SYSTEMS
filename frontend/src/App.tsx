@@ -10,14 +10,11 @@ import Reports from './pages/Reports';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<string>('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
     if (token) {
       setIsAuthenticated(true);
-      setUserRole(role || '');
     }
   }, []);
 
@@ -25,14 +22,12 @@ function App() {
     localStorage.setItem('token', token);
     localStorage.setItem('role', role);
     setIsAuthenticated(true);
-    setUserRole(role);
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     setIsAuthenticated(false);
-    setUserRole('');
   };
 
   return (
@@ -83,11 +78,7 @@ function App() {
         <Route 
           path="/reports" 
           element={
-            isAuthenticated && userRole === 'owner' ? (
-              <Reports onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/dashboard" />
-            )
+            isAuthenticated ? <Reports onLogout={handleLogout} /> : <Navigate to="/login" />
           } 
         />
       </Routes>
