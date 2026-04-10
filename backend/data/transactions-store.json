@@ -29,6 +29,26 @@
       "cash_in_hand": 0,
       "description": "{\"lineCard\":\"67890\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":9,\"notes\":\"\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
       "created_at": "2026-04-07T18:05:09.768Z"
+    },
+    {
+      "id": 4,
+      "user_id": 2,
+      "service_type": "vodacom",
+      "amount": 123,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 123,
+      "description": "{\"lineCard\":\"111\",\"placeOfConsumption\":\"9002\",\"totalCashOut\":0,\"dailyConsumption\":4554.99,\"notes\":\"\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-04-10T14:37:01.114Z"
+    },
+    {
+      "id": 5,
+      "user_id": 2,
+      "service_type": "airtel",
+      "amount": 0,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 123,
+      "description": "{\"lineCard\":\"222\",\"placeOfConsumption\":\"9002\",\"totalCashOut\":0,\"dailyConsumption\":4554.99,\"notes\":\"\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-04-10T14:37:01.152Z"
     }
   ]
 }
