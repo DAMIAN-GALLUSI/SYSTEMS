@@ -210,8 +210,16 @@ const getTodayInputValue = () => {
 };
 
 const getDayRangeFromInput = (dateValue: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+    return null;
+  }
+
   const start = new Date(`${dateValue}T00:00:00`);
   const end = new Date(`${dateValue}T23:59:59.999`);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return null;
+  }
 
   return {
     startDate: start.toISOString(),
@@ -230,6 +238,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
   const [dailyLoading, setDailyLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedDailyDate, setSelectedDailyDate] = useState(getTodayInputValue());
+  const [loadedDailyDate, setLoadedDailyDate] = useState(getTodayInputValue());
   const [filters, setFilters] = useState({
     serviceType: ''
   });
@@ -283,12 +292,18 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
     }
   };
 
-  const loadSelectedDailyReport = async () => {
+  const loadSelectedDailyReport = async (dateValue?: string) => {
+    const targetDate = dateValue || selectedDailyDate;
+    const range = getDayRangeFromInput(targetDate);
+    if (!range) {
+      setError('Please choose a valid date.');
+      return;
+    }
+
     setDailyLoading(true);
     setError('');
 
     try {
-      const range = getDayRangeFromInput(selectedDailyDate);
       const params: any = {
         startDate: range.startDate,
         endDate: range.endDate,
@@ -305,6 +320,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
         ...current,
         day: dailyData,
       }));
+      setLoadedDailyDate(targetDate);
     } catch (err) {
       console.error('Failed to load daily report:', err);
       setError('Failed to load selected daily report. Please try again.');
@@ -369,6 +385,10 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
 
   useEffect(() => {
     generateReports();
+  }, []);
+
+  useEffect(() => {
+    loadSelectedDailyReport(getTodayInputValue());
   }, []);
 
   return (
@@ -444,13 +464,19 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                       id="selectedDailyDate"
                       type="date"
                       value={selectedDailyDate}
-                      onChange={(e) => setSelectedDailyDate(e.target.value)}
+                      onChange={(e) => {
+                        const nextDate = e.target.value;
+                        setSelectedDailyDate(nextDate);
+                        if (nextDate) {
+                          loadSelectedDailyReport(nextDate);
+                        }
+                      }}
                     />
                   </div>
                   <button
                     type="button"
                     className="btn-generate"
-                    onClick={loadSelectedDailyReport}
+                    onClick={() => loadSelectedDailyReport()}
                     disabled={dailyLoading}
                   >
                     {dailyLoading ? 'Loading Day Details...' : 'View Selected Day Details'}
@@ -462,7 +488,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                 <>
                   {period.key === 'day' && (
                     <div className="daily-selected-note">
-                      Showing saved details for: <strong>{selectedDailyDate}</strong>
+                      Showing saved details for: <strong>{loadedDailyDate}</strong>
                     </div>
                   )}
 
@@ -511,28 +537,30 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                     </div>
                   )}
 
-                  <div className="summary-section">
-                    <div className="summary-grid">
-                      <div className="summary-item">
-                        <h3>Total Transactions</h3>
-                        <p>{reportData.summary.totalTransactions}</p>
-                      </div>
-                      <div className="summary-item">
-                        <h3>Total Deposits</h3>
-                        <p className="positive">{formatCurrency(reportData.summary.totalDeposits)}</p>
-                      </div>
-                      <div className="summary-item">
-                        <h3>Total Withdrawals</h3>
-                        <p className="negative">{formatCurrency(reportData.summary.totalWithdrawals)}</p>
-                      </div>
-                      <div className="summary-item">
-                        <h3>Net Profit</h3>
-                        <p className={reportData.summary.netProfit >= 0 ? 'positive' : 'negative'}>
-                          {formatCurrency(reportData.summary.netProfit)}
-                        </p>
+                  {period.key !== 'day' && (
+                    <div className="summary-section">
+                      <div className="summary-grid">
+                        <div className="summary-item">
+                          <h3>Total Transactions</h3>
+                          <p>{reportData.summary.totalTransactions}</p>
+                        </div>
+                        <div className="summary-item">
+                          <h3>Total Deposits</h3>
+                          <p className="positive">{formatCurrency(reportData.summary.totalDeposits)}</p>
+                        </div>
+                        <div className="summary-item">
+                          <h3>Total Withdrawals</h3>
+                          <p className="negative">{formatCurrency(reportData.summary.totalWithdrawals)}</p>
+                        </div>
+                        <div className="summary-item">
+                          <h3>Net Profit</h3>
+                          <p className={reportData.summary.netProfit >= 0 ? 'positive' : 'negative'}>
+                            {formatCurrency(reportData.summary.netProfit)}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="transactions-table-section">
                     <h3>{period.title} Transactions</h3>
