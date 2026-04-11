@@ -94,6 +94,20 @@
   color: #1e3a8a;
 }
 
+.daily-circulation-line {
+  margin: 0 0 0.9rem;
+  color: #1f2937;
+}
+
+.daily-notes-line {
+  margin: 0 0 0.9rem;
+  color: #1f2937;
+  padding: 0.5rem 0.75rem;
+  background: #fef3c7;
+  border-left: 3px solid #f59e0b;
+  border-radius: 4px;
+}
+
 .empty-report,
 .empty-row {
   text-align: center;

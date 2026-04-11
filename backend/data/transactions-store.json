@@ -249,6 +249,26 @@
       "cash_in_hand": 2987.99,
       "description": "{\"lineCard\":\"222\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":83,\"notes\":\"\",\"saveBatchId\":\"1775892824040\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
       "created_at": "2026-04-11T07:33:44.186Z"
+    },
+    {
+      "id": 26,
+      "user_id": 2,
+      "service_type": "vodacom",
+      "amount": 6777,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 2987.99,
+      "description": "{\"lineCard\":\"111\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":83,\"notes\":\"i had emergence thus why i consumed that amount of money\",\"saveBatchId\":\"1775893244753\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-04-11T07:40:44.868Z"
+    },
+    {
+      "id": 27,
+      "user_id": 2,
+      "service_type": "airtel",
+      "amount": 8333,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 2987.99,
+      "description": "{\"lineCard\":\"222\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":83,\"notes\":\"i had emergence thus why i consumed that amount of money\",\"saveBatchId\":\"1775893244753\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-04-11T07:40:44.880Z"
     }
   ]
 }

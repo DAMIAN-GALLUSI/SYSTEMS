@@ -161,6 +161,16 @@ const getLatestDailyBalancingRows = (rows: DailyBalancingReportRow[]) => {
   return latestRows;
 };
 
+const getDailyCirculationAmount = (rows: DailyBalancingReportRow[]) => {
+  if (rows.length < 1) {
+    return 0;
+  }
+
+  const lineAmountsTotal = rows.reduce((sum, row) => sum + row.amount, 0);
+  const cashInHand = rows[0].cashInHand;
+  return cashInHand + lineAmountsTotal;
+};
+
 const getPeriodRange = (period: PeriodKey) => {
   const now = new Date();
   const endDate = new Date(now);
@@ -459,6 +469,15 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                   {period.key === 'day' && dailyBalancingRows.length > 0 && (
                     <div className="daily-balancing-report-section">
                       <h3>Saved From Daily Balancing</h3>
+                      <p className="daily-circulation-line">
+                        <strong>The current amount of money in circulation within the business:</strong>{' '}
+                        {formatCurrency(getDailyCirculationAmount(dailyBalancingRows))}
+                      </p>
+                      {dailyBalancingRows[0]?.notes && dailyBalancingRows[0].notes !== '-' && (
+                        <p className="daily-notes-line">
+                          <strong>Notes:</strong> {dailyBalancingRows[0].notes}
+                        </p>
+                      )}
                       <div className="table-container">
                         <table className="transactions-table">
                           <thead>
