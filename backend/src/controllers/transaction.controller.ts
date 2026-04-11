@@ -42,6 +42,7 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
       totalCashOut,
       dailyConsumption,
       notes,
+      saveBatchId,
     } = req.body;
 
     // New payload mode: record user-selected service line/cards with one shared cash-out value.
@@ -61,6 +62,7 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
       const safeCashInHand = Number.isNaN(parsedCashInHand) || parsedCashInHand < 0 ? 0 : parsedCashInHand;
       const safeDailyConsumption = Number.isNaN(parsedDailyConsumption) || parsedDailyConsumption < 0 ? 0 : parsedDailyConsumption;
       const safePlaceOfConsumption = typeof placeOfConsumption === 'string' ? placeOfConsumption : '';
+      const safeSaveBatchId = typeof saveBatchId === 'string' ? saveBatchId : '';
       const hasEntryAmounts = entries.some((entry: any) => entry && entry.amount !== undefined && entry.amount !== null && entry.amount !== '');
 
       const createdTransactions = [];
@@ -102,6 +104,7 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
             totalCashOut: safeTotalCashOut,
             dailyConsumption: safeDailyConsumption,
             notes: typeof notes === 'string' ? notes : '',
+            saveBatchId: safeSaveBatchId,
             mode: 'daily-balancing-entry',
             hasEntryAmounts,
             isPrimaryAmountRow: !hasEntryAmounts && index === 0,
@@ -160,6 +163,7 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
               totalCashOut: safeTotalCashOut,
               dailyConsumption: safeDailyConsumption,
               notes: typeof notes === 'string' ? notes : '',
+              saveBatchId: safeSaveBatchId,
               mode: 'daily-balancing-entry',
               hasEntryAmounts,
               isPrimaryAmountRow: !hasEntryAmounts && index === 0,

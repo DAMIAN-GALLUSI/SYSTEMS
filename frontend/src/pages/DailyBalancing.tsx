@@ -26,6 +26,7 @@ interface SavedDailyBalancing {
   cashInHand: string;
   dailyConsumption: string;
   notes: string;
+  saveBatchId?: string;
 }
 
 interface LineAmountEntry extends RegisteredLineEntry {
@@ -137,6 +138,30 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
     setLineEntries(nextEntries);
   };
 
+  const todaySavedEntry = useMemo(() => {
+    const todayKey = getDayKey(new Date().toISOString());
+    const matches = savedDailyBalancingHistory.filter((entry) => getDayKey(entry.savedAt) === todayKey);
+    if (matches.length < 1) {
+      return null;
+    }
+
+    matches.sort((a, b) => new Date(a.savedAt).getTime() - new Date(b.savedAt).getTime());
+    return matches[matches.length - 1];
+  }, [savedDailyBalancingHistory]);
+
+  const handleEditTodaySaved = () => {
+    if (!todaySavedEntry) {
+      return;
+    }
+
+    setLineEntries(todaySavedEntry.entries.map((entry) => ({ ...entry })));
+    setCashInHand(todaySavedEntry.cashInHand);
+    setDailyConsumption(todaySavedEntry.dailyConsumption);
+    setNotes(todaySavedEntry.notes);
+    setShowSavedDailyBalancing(false);
+    setMessage({ type: 'success', text: 'Editing today\'s saved details. Save again to update today only.' });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage({ type: '', text: '' });
@@ -171,6 +196,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
     setLoading(true);
 
     try {
+      const saveBatchId = `${Date.now()}`;
       const savedPayload: SavedDailyBalancing = {
         savedAt: new Date().toISOString(),
         entries: lineEntries.map((entry) => ({
@@ -180,6 +206,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
         cashInHand: String(parsedCash),
         dailyConsumption: String(parsedConsumption),
         notes: notes.trim(),
+        saveBatchId,
       };
 
       await transactionAPI.create({
@@ -192,6 +219,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
         cashInHand: parsedCash,
         dailyConsumption: parsedConsumption,
         notes: notes.trim(),
+        saveBatchId,
       });
 
       const updatedHistory = [...savedDailyBalancingHistory];
@@ -315,6 +343,12 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
               <button type="submit" disabled={loading} className="btn-submit">
                 {loading ? 'Saving...' : 'Save Daily Balancing'}
               </button>
+
+              {todaySavedEntry && (
+                <button type="button" className="line-add-btn" onClick={handleEditTodaySaved}>
+                  Edit Today's Saved Details
+                </button>
+              )}
 
               {savedDailyBalancing && (
                 <>

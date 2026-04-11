@@ -22,6 +22,28 @@ interface ReportData {
   generatedAt: string;
 }
 
+interface DailyBalancingMetadata {
+  lineCard?: string;
+  dailyConsumption?: number;
+  notes?: string;
+  saveBatchId?: string;
+  mode?: string;
+}
+
+interface DailyBalancingReportRow {
+  id: number;
+  date: string;
+  dayKey: string;
+  serviceName: string;
+  lineCard: string;
+  amount: number;
+  cashInHand: number;
+  dailyConsumption: number;
+  notes: string;
+  employeeName: string;
+  saveBatchId: string;
+}
+
 type PeriodKey = 'day' | 'week' | 'month' | 'year';
 
 interface PeriodConfig {
@@ -60,6 +82,85 @@ const normalizeReportData = (raw: any): ReportData => ({
   generatedAt: raw?.generatedAt || new Date().toISOString(),
 });
 
+const parseDailyBalancingMetadata = (description: string): DailyBalancingMetadata | null => {
+  if (!description) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(description);
+    return typeof parsed === 'object' && parsed ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const getDailyBalancingRows = (transactions: Transaction[]): DailyBalancingReportRow[] => {
+  return transactions
+    .map((transaction) => {
+      const metadata = parseDailyBalancingMetadata(transaction.description || '');
+      if (!metadata || metadata.mode !== 'daily-balancing-entry') {
+        return null;
+      }
+
+      return {
+        id: transaction.id,
+        date: transaction.createdAt,
+        dayKey: new Date(transaction.createdAt).toISOString().slice(0, 10),
+        serviceName: getServiceInfo(transaction.serviceType).name,
+        lineCard: metadata.lineCard || '-',
+        amount: transaction.amount,
+        cashInHand: transaction.cashInHand,
+        dailyConsumption: Number(metadata.dailyConsumption || 0),
+        notes: metadata.notes || '-',
+        employeeName: transaction.employeeName || 'N/A',
+        saveBatchId: metadata.saveBatchId || '',
+      };
+    })
+    .filter((row): row is DailyBalancingReportRow => row !== null);
+};
+
+const getLatestDailyBalancingRows = (rows: DailyBalancingReportRow[]) => {
+  if (rows.length < 1) {
+    return [];
+  }
+
+  const grouped = new Map<string, DailyBalancingReportRow[]>();
+  rows.forEach((row) => {
+    const key = `${row.employeeName}::${row.dayKey}`;
+    const current = grouped.get(key) || [];
+    current.push(row);
+    grouped.set(key, current);
+  });
+
+  const latestRows: DailyBalancingReportRow[] = [];
+
+  grouped.forEach((groupRows) => {
+    const withBatch = groupRows.filter((row) => row.saveBatchId);
+
+    if (withBatch.length > 0) {
+      withBatch.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      const latestBatchId = withBatch[0].saveBatchId;
+      latestRows.push(...groupRows.filter((row) => row.saveBatchId === latestBatchId));
+      return;
+    }
+
+    const latestPerLine = new Map<string, DailyBalancingReportRow>();
+    groupRows.forEach((row) => {
+      const lineKey = `${row.serviceName}::${row.lineCard}`;
+      const existing = latestPerLine.get(lineKey);
+      if (!existing || new Date(row.date).getTime() > new Date(existing.date).getTime()) {
+        latestPerLine.set(lineKey, row);
+      }
+    });
+
+    latestRows.push(...latestPerLine.values());
+  });
+
+  latestRows.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return latestRows;
+};
+
 const getPeriodRange = (period: PeriodKey) => {
   const now = new Date();
   const endDate = new Date(now);
@@ -90,6 +191,24 @@ const getPeriodRange = (period: PeriodKey) => {
   };
 };
 
+const getTodayInputValue = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = `${now.getMonth() + 1}`.padStart(2, '0');
+  const day = `${now.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getDayRangeFromInput = (dateValue: string) => {
+  const start = new Date(`${dateValue}T00:00:00`);
+  const end = new Date(`${dateValue}T23:59:59.999`);
+
+  return {
+    startDate: start.toISOString(),
+    endDate: end.toISOString(),
+  };
+};
+
 const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
   const [reportsByPeriod, setReportsByPeriod] = useState<Record<PeriodKey, ReportData | null>>({
     day: null,
@@ -98,7 +217,9 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
     year: null,
   });
   const [loading, setLoading] = useState(false);
+  const [dailyLoading, setDailyLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedDailyDate, setSelectedDailyDate] = useState(getTodayInputValue());
   const [filters, setFilters] = useState({
     serviceType: ''
   });
@@ -116,7 +237,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
 
     try {
       const periodEntries = await Promise.all(
-        PERIODS.map(async (period) => {
+        PERIODS.filter((period) => period.key !== 'day').map(async (period) => {
           const range = getPeriodRange(period.key);
           const params: any = {
             startDate: range.startDate,
@@ -132,12 +253,53 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
         })
       );
 
-      setReportsByPeriod(Object.fromEntries(periodEntries) as Record<PeriodKey, ReportData>);
+      const nextState: Record<PeriodKey, ReportData | null> = {
+        day: reportsByPeriod.day,
+        week: null,
+        month: null,
+        year: null,
+      };
+
+      periodEntries.forEach(([key, value]) => {
+        nextState[key] = value;
+      });
+
+      setReportsByPeriod(nextState);
     } catch (error) {
       console.error('Failed to generate report:', error);
       setError('Failed to generate reports. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadSelectedDailyReport = async () => {
+    setDailyLoading(true);
+    setError('');
+
+    try {
+      const range = getDayRangeFromInput(selectedDailyDate);
+      const params: any = {
+        startDate: range.startDate,
+        endDate: range.endDate,
+      };
+
+      if (filters.serviceType) {
+        params.serviceType = filters.serviceType;
+      }
+
+      const response = await reportAPI.generate(params);
+      const dailyData = normalizeReportData(response.data);
+
+      setReportsByPeriod((current) => ({
+        ...current,
+        day: dailyData,
+      }));
+    } catch (err) {
+      console.error('Failed to load daily report:', err);
+      setError('Failed to load selected daily report. Please try again.');
+    } finally {
+      setDailyLoading(false);
     }
   };
 
@@ -246,6 +408,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
 
         {PERIODS.map((period) => {
           const reportData = reportsByPeriod[period.key];
+          const dailyBalancingRows = reportData ? getLatestDailyBalancingRows(getDailyBalancingRows(reportData.transactions)) : [];
 
           return (
             <section className="period-section" key={period.key}>
@@ -263,8 +426,72 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                 </button>
               </div>
 
+              {period.key === 'day' && (
+                <div className="daily-controls">
+                  <div className="form-group daily-date-group">
+                    <label htmlFor="selectedDailyDate">Choose Day</label>
+                    <input
+                      id="selectedDailyDate"
+                      type="date"
+                      value={selectedDailyDate}
+                      onChange={(e) => setSelectedDailyDate(e.target.value)}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-generate"
+                    onClick={loadSelectedDailyReport}
+                    disabled={dailyLoading}
+                  >
+                    {dailyLoading ? 'Loading Day Details...' : 'View Selected Day Details'}
+                  </button>
+                </div>
+              )}
+
               {reportData ? (
                 <>
+                  {period.key === 'day' && (
+                    <div className="daily-selected-note">
+                      Showing saved details for: <strong>{selectedDailyDate}</strong>
+                    </div>
+                  )}
+
+                  {period.key === 'day' && dailyBalancingRows.length > 0 && (
+                    <div className="daily-balancing-report-section">
+                      <h3>Saved From Daily Balancing</h3>
+                      <div className="table-container">
+                        <table className="transactions-table">
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Service</th>
+                              <th>Line/Card</th>
+                              <th>Amount</th>
+                              <th>Cash in Hand</th>
+                              <th>Use of the Day</th>
+                              <th>Employee</th>
+                              <th>Notes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {dailyBalancingRows.map((row) => (
+                              <tr key={`daily-balance-${row.id}-${row.date}`}>
+                                <td>{formatDate(row.date)}</td>
+                                <td>{row.serviceName}</td>
+                                <td>{row.lineCard}</td>
+                                <td className={row.amount >= 0 ? 'positive' : 'negative'}>{formatCurrency(row.amount)}</td>
+                                <td>{formatCurrency(row.cashInHand)}</td>
+                                <td>{formatCurrency(row.dailyConsumption)}</td>
+                                <td>{row.employeeName}</td>
+                                <td>{row.notes}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="summary-section">
                     <div className="summary-grid">
                       <div className="summary-item">
