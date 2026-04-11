@@ -35,6 +35,27 @@ interface LineAmountEntry extends RegisteredLineEntry {
 const REGISTERED_DETAILS_STORAGE_KEY = 'registered-line-details';
 const SAVED_DAILY_BALANCING_STORAGE_KEY = 'saved-daily-balancing';
 
+const getDayKey = (dateValue: string) => {
+  const date = new Date(dateValue);
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const isToday = (dateValue: string) => getDayKey(dateValue) === getDayKey(new Date().toISOString());
+
+const getSavedCirculationAmount = (saved: SavedDailyBalancing) => {
+  const cash = Number(saved.cashInHand);
+  const safeCash = Number.isNaN(cash) ? 0 : cash;
+  const linesTotal = saved.entries.reduce((sum, entry) => {
+    const amount = Number(entry.amount);
+    return sum + (Number.isNaN(amount) ? 0 : amount);
+  }, 0);
+
+  return safeCash + linesTotal;
+};
+
 const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
   const navigate = useNavigate();
   const [lineEntries, setLineEntries] = useState<LineAmountEntry[]>([]);
@@ -42,6 +63,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
   const [dailyConsumption, setDailyConsumption] = useState('');
   const [notes, setNotes] = useState('');
   const [savedDailyBalancing, setSavedDailyBalancing] = useState<SavedDailyBalancing | null>(null);
+  const [savedDailyBalancingHistory, setSavedDailyBalancingHistory] = useState<SavedDailyBalancing[]>([]);
   const [showSavedDailyBalancing, setShowSavedDailyBalancing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -78,13 +100,20 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
     }
 
     try {
-      const parsed: SavedDailyBalancing = JSON.parse(raw);
-      if (!Array.isArray(parsed.entries)) {
+      const parsed = JSON.parse(raw) as SavedDailyBalancing | SavedDailyBalancing[];
+      const history = Array.isArray(parsed) ? parsed : [parsed];
+      const safeHistory = history.filter((entry) => Array.isArray(entry?.entries));
+
+      if (safeHistory.length < 1) {
         return;
       }
 
-      setSavedDailyBalancing(parsed);
+      safeHistory.sort((a, b) => new Date(a.savedAt).getTime() - new Date(b.savedAt).getTime());
+
+      setSavedDailyBalancingHistory(safeHistory);
+      setSavedDailyBalancing(safeHistory[safeHistory.length - 1]);
     } catch {
+      setSavedDailyBalancingHistory([]);
       setSavedDailyBalancing(null);
     }
   }, []);
@@ -165,7 +194,20 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
         notes: notes.trim(),
       });
 
-      localStorage.setItem(SAVED_DAILY_BALANCING_STORAGE_KEY, JSON.stringify(savedPayload));
+      const updatedHistory = [...savedDailyBalancingHistory];
+      const todayKey = getDayKey(savedPayload.savedAt);
+      const todayIndex = updatedHistory.findIndex((entry) => getDayKey(entry.savedAt) === todayKey);
+
+      if (todayIndex >= 0) {
+        updatedHistory[todayIndex] = savedPayload;
+      } else {
+        updatedHistory.push(savedPayload);
+      }
+
+      updatedHistory.sort((a, b) => new Date(a.savedAt).getTime() - new Date(b.savedAt).getTime());
+
+      localStorage.setItem(SAVED_DAILY_BALANCING_STORAGE_KEY, JSON.stringify(updatedHistory));
+      setSavedDailyBalancingHistory(updatedHistory);
       setSavedDailyBalancing(savedPayload);
       setShowSavedDailyBalancing(true);
 
@@ -288,8 +330,15 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                     <div className="saved-report-panel" style={{ marginTop: '1rem' }}>
                       <div className="section-header">Saved Daily Balancing</div>
                       <p><strong>Saved at:</strong> {new Date(savedDailyBalancing.savedAt).toLocaleString('en-TZ')}</p>
+                      {!isToday(savedDailyBalancing.savedAt) && (
+                        <p><strong>Note:</strong> This is a past-day record and is locked from editing.</p>
+                      )}
                       <p><strong>Cash in hand:</strong> {new Intl.NumberFormat('en-TZ').format(Number(savedDailyBalancing.cashInHand))} TZS</p>
                       <p><strong>Use of the day:</strong> {new Intl.NumberFormat('en-TZ').format(Number(savedDailyBalancing.dailyConsumption))} TZS</p>
+                      <p>
+                        <strong>The current amount of money in circulation within the business:</strong>{' '}
+                        {new Intl.NumberFormat('en-TZ').format(getSavedCirculationAmount(savedDailyBalancing))} TZS
+                      </p>
                       {savedDailyBalancing.notes && <p><strong>Notes:</strong> {savedDailyBalancing.notes}</p>}
                       <div className="line-table saved-lines-table" style={{ marginTop: '1rem' }}>
                         <div className="line-table-header saved-lines-header">
@@ -305,6 +354,11 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                           </div>
                         ))}
                       </div>
+                      {savedDailyBalancingHistory.length > 1 && (
+                        <p style={{ marginTop: '1rem' }}>
+                          <strong>Saved days:</strong> {savedDailyBalancingHistory.length} (older days remain locked)
+                        </p>
+                      )}
                     </div>
                   )}
                 </>
