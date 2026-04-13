@@ -89,6 +89,80 @@
   background: #f8fbff;
 }
 
+.weekly-balancing-report-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid #c7d2fe;
+  background: #f8faff;
+}
+
+.weekly-balancing-report-section h3 {
+  margin: 0 0 0.6rem;
+  color: #312e81;
+}
+
+.weekly-balancing-description {
+  margin: 0 0 1rem;
+  color: #4b5563;
+}
+
+.weekly-day-group {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+
+.weekly-day-group:last-child {
+  margin-bottom: 0;
+}
+
+.weekly-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.weekly-day-header h4 {
+  margin: 0;
+  color: #111827;
+}
+
+.weekly-day-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.92rem;
+}
+
+.weekly-day-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.weekly-day-summary-item {
+  border-radius: 8px;
+  background: #f3f4f6;
+  padding: 0.65rem 0.75rem;
+}
+
+.weekly-day-summary-item span {
+  display: block;
+  color: #4b5563;
+  font-size: 0.8rem;
+  margin-bottom: 0.2rem;
+}
+
+.weekly-day-summary-item strong {
+  color: #111827;
+  font-size: 0.95rem;
+}
+
 .daily-balancing-report-section h3 {
   margin: 0 0 0.8rem;
   color: #1e3a8a;
@@ -350,6 +424,11 @@
   .daily-controls {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .weekly-day-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .daily-date-group {

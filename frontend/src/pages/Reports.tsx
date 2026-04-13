@@ -44,6 +44,16 @@ interface DailyBalancingReportRow {
   saveBatchId: string;
 }
 
+interface WeeklyBalancingGroup {
+  dayKey: string;
+  dateLabel: string;
+  rows: DailyBalancingReportRow[];
+  totalLineAmounts: number;
+  totalConsumption: number;
+  circulationAmount: number;
+  employees: string[];
+}
+
 type PeriodKey = 'day' | 'week' | 'month' | 'year';
 
 interface PeriodConfig {
@@ -169,6 +179,41 @@ const getDailyCirculationAmount = (rows: DailyBalancingReportRow[]) => {
   const lineAmountsTotal = rows.reduce((sum, row) => sum + row.amount, 0);
   const cashInHand = rows[0].cashInHand;
   return cashInHand + lineAmountsTotal;
+};
+
+const getWeeklyBalancingGroups = (rows: DailyBalancingReportRow[]): WeeklyBalancingGroup[] => {
+  if (rows.length < 1) {
+    return [];
+  }
+
+  const latestRows = getLatestDailyBalancingRows(rows);
+  const grouped = new Map<string, DailyBalancingReportRow[]>();
+
+  latestRows.forEach((row) => {
+    const current = grouped.get(row.dayKey) || [];
+    current.push(row);
+    grouped.set(row.dayKey, current);
+  });
+
+  const groups = Array.from(grouped.entries()).map(([dayKey, dayRows]) => {
+    const sortedRows = dayRows.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const employees = Array.from(new Set(sortedRows.map((row) => row.employeeName)));
+    const totalLineAmounts = sortedRows.reduce((sum, row) => sum + row.amount, 0);
+    const totalConsumption = sortedRows.reduce((sum, row) => sum + row.dailyConsumption, 0);
+
+    return {
+      dayKey,
+      dateLabel: formatDate(`${dayKey}T12:00:00`),
+      rows: sortedRows,
+      totalLineAmounts,
+      totalConsumption,
+      circulationAmount: getDailyCirculationAmount(sortedRows),
+      employees,
+    };
+  });
+
+  groups.sort((a, b) => new Date(b.dayKey).getTime() - new Date(a.dayKey).getTime());
+  return groups;
 };
 
 const getPeriodRange = (period: PeriodKey) => {
@@ -439,6 +484,10 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
         {PERIODS.map((period) => {
           const reportData = reportsByPeriod[period.key];
           const dailyBalancingRows = reportData ? getLatestDailyBalancingRows(getDailyBalancingRows(reportData.transactions)) : [];
+          const weeklyBalancingGroups =
+            period.key === 'week' && reportData
+              ? getWeeklyBalancingGroups(getDailyBalancingRows(reportData.transactions))
+              : [];
 
           return (
             <section className="period-section" key={period.key}>
@@ -534,6 +583,74 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                           </tbody>
                         </table>
                       </div>
+                    </div>
+                  )}
+
+                  {period.key === 'week' && weeklyBalancingGroups.length > 0 && (
+                    <div className="weekly-balancing-report-section">
+                      <h3>Saved From Daily Balancing (Weekly Full Details)</h3>
+                      <p className="weekly-balancing-description">
+                        A complete day-by-day breakdown of the week, including circulation, line amounts, usage, and employee entries.
+                      </p>
+
+                      {weeklyBalancingGroups.map((group) => (
+                        <div className="weekly-day-group" key={`weekly-group-${group.dayKey}`}>
+                          <div className="weekly-day-header">
+                            <h4>{group.dateLabel}</h4>
+                            <p>{group.rows.length} records</p>
+                          </div>
+
+                          <div className="weekly-day-summary-grid">
+                            <div className="weekly-day-summary-item">
+                              <span>Money In Circulation</span>
+                              <strong>{formatCurrency(group.circulationAmount)}</strong>
+                            </div>
+                            <div className="weekly-day-summary-item">
+                              <span>Total Line/Card Amount</span>
+                              <strong>{formatCurrency(group.totalLineAmounts)}</strong>
+                            </div>
+                            <div className="weekly-day-summary-item">
+                              <span>Total Use of the Day</span>
+                              <strong>{formatCurrency(group.totalConsumption)}</strong>
+                            </div>
+                            <div className="weekly-day-summary-item">
+                              <span>Employees</span>
+                              <strong>{group.employees.join(', ') || 'N/A'}</strong>
+                            </div>
+                          </div>
+
+                          <div className="table-container">
+                            <table className="transactions-table">
+                              <thead>
+                                <tr>
+                                  <th>Date</th>
+                                  <th>Service</th>
+                                  <th>Line/Card</th>
+                                  <th>Amount</th>
+                                  <th>Cash in Hand</th>
+                                  <th>Use of the Day</th>
+                                  <th>Employee</th>
+                                  <th>Notes</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {group.rows.map((row) => (
+                                  <tr key={`weekly-daily-balance-${group.dayKey}-${row.id}-${row.date}`}>
+                                    <td>{formatDate(row.date)}</td>
+                                    <td>{row.serviceName}</td>
+                                    <td>{row.lineCard}</td>
+                                    <td className={row.amount >= 0 ? 'positive' : 'negative'}>{formatCurrency(row.amount)}</td>
+                                    <td>{formatCurrency(row.cashInHand)}</td>
+                                    <td>{formatCurrency(row.dailyConsumption)}</td>
+                                    <td>{row.employeeName}</td>
+                                    <td>{row.notes}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
 
