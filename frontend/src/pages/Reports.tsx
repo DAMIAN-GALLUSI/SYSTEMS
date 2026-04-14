@@ -661,59 +661,61 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                     </div>
                   )}
 
-                  <div className="transactions-table-section">
-                    <h3>{period.title} Transactions</h3>
-                    <div className="table-container">
-                      <table className="transactions-table">
-                        <thead>
-                          <tr>
-                            <th>Date</th>
-                            <th>Service</th>
-                            <th>Type</th>
-                            <th>Amount</th>
-                            <th>Cash in Hand</th>
-                            <th>Employee</th>
-                            <th>Description</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {reportData.transactions.length === 0 ? (
+                  {period.key !== 'week' && (
+                    <div className="transactions-table-section">
+                      <h3>{period.title} Transactions</h3>
+                      <div className="table-container">
+                        <table className="transactions-table">
+                          <thead>
                             <tr>
-                              <td colSpan={7} className="empty-row">No transactions in this period.</td>
+                              <th>Date</th>
+                              <th>Service</th>
+                              <th>Type</th>
+                              <th>Amount</th>
+                              <th>Cash in Hand</th>
+                              <th>Employee</th>
+                              <th>Description</th>
                             </tr>
-                          ) : (
-                            reportData.transactions.map((transaction) => (
-                              <tr key={`${period.key}-${transaction.id}-${transaction.createdAt}`}>
-                                <td>{formatDate(transaction.createdAt)}</td>
-                                <td>
-                                  <span
-                                    className="service-badge"
-                                    style={{
-                                      backgroundColor: getServiceInfo(transaction.serviceType).color,
-                                      color: getServiceInfo(transaction.serviceType).textColor,
-                                    }}
-                                  >
-                                    {getServiceInfo(transaction.serviceType).name}
-                                  </span>
-                                </td>
-                                <td>
-                                  <span className={`type-badge ${transaction.transactionType}`}>
-                                    {transaction.transactionType}
-                                  </span>
-                                </td>
-                                <td className={transaction.transactionType === 'deposit' ? 'positive' : 'negative'}>
-                                  {formatCurrency(transaction.amount)}
-                                </td>
-                                <td>{formatCurrency(transaction.cashInHand)}</td>
-                                <td>{transaction.employeeName || 'N/A'}</td>
-                                <td>{transaction.description || '-'}</td>
+                          </thead>
+                          <tbody>
+                            {reportData.transactions.length === 0 ? (
+                              <tr>
+                                <td colSpan={7} className="empty-row">No transactions in this period.</td>
                               </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
+                            ) : (
+                              reportData.transactions.map((transaction) => (
+                                <tr key={`${period.key}-${transaction.id}-${transaction.createdAt}`}>
+                                  <td>{formatDate(transaction.createdAt)}</td>
+                                  <td>
+                                    <span
+                                      className="service-badge"
+                                      style={{
+                                        backgroundColor: getServiceInfo(transaction.serviceType).color,
+                                        color: getServiceInfo(transaction.serviceType).textColor,
+                                      }}
+                                    >
+                                      {getServiceInfo(transaction.serviceType).name}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <span className={`type-badge ${transaction.transactionType}`}>
+                                      {transaction.transactionType}
+                                    </span>
+                                  </td>
+                                  <td className={transaction.transactionType === 'deposit' ? 'positive' : 'negative'}>
+                                    {formatCurrency(transaction.amount)}
+                                  </td>
+                                  <td>{formatCurrency(transaction.cashInHand)}</td>
+                                  <td>{transaction.employeeName || 'N/A'}</td>
+                                  <td>{transaction.description || '-'}</td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </>
               ) : (
                 <div className="empty-report">No data loaded for this period yet.</div>
