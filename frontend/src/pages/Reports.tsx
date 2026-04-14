@@ -783,77 +783,79 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                         {expandedSections['weekly-balance'] ? '▼' : '▶'} Saved From Daily Balancing (Weekly Full Details)
                       </button>
                       {expandedSections['weekly-balance'] && (
-                      <div className="collapsible-content">
-                      <p className="weekly-balancing-description">
-                        A complete day-by-day breakdown of the week, including circulation, line amounts, usage, and employee entries.
-                      </p>
-
-                      {weeklyBalancingGroups.map((group) => (
-                        <div className="weekly-day-group" key={`weekly-group-${group.dayKey}`}>
-                          <div className="weekly-day-header">
-                            <h4>{group.dateLabel}</h4>
-                            <p>{group.rows.length} records</p>
-                          </div>
-
-                          <p className="daily-circulation-line">
-                            <strong>The current amount of money in circulation within the business:</strong>{' '}
-                            {formatCurrency(group.circulationAmount)}
-                          </p>
-                          <p className="daily-notes-line">
-                            <strong>Notes:</strong> {getDisplayNotes(group.rows)}
+                        <div className="collapsible-content">
+                          <p className="weekly-balancing-description">
+                            A complete day-by-day breakdown of the week, including circulation, line amounts, usage, and employee entries.
                           </p>
 
-                          <div className="weekly-day-summary-grid">
-                            <div className="weekly-day-summary-item">
-                              <span>Money In Circulation</span>
-                              <strong>{formatCurrency(group.circulationAmount)}</strong>
-                            </div>
-                            <div className="weekly-day-summary-item">
-                              <span>Total Line/Card Amount</span>
-                              <strong>{formatCurrency(group.totalLineAmounts)}</strong>
-                            </div>
-                            <div className="weekly-day-summary-item">
-                              <span>Total Use of the Day</span>
-                              <strong>{formatCurrency(group.totalConsumption)}</strong>
-                            </div>
-                            <div className="weekly-day-summary-item">
-                              <span>Employees</span>
-                              <strong>{group.employees.join(', ') || 'N/A'}</strong>
-                            </div>
-                          </div>
+                          {weeklyBalancingGroups.map((group) => (
+                            <div className="weekly-day-group" key={`weekly-group-${group.dayKey}`}>
+                              <div className="weekly-day-header">
+                                <h4>{group.dateLabel}</h4>
+                                <p>{group.rows.length} records</p>
+                              </div>
 
-                          <div className="table-container">
-                            <table className="transactions-table">
-                              <thead>
-                                <tr>
-                                  <th>Date</th>
-                                  <th>Service</th>
-                                  <th>Line/Card</th>
-                                  <th>Amount</th>
-                                  <th>Cash in Hand</th>
-                                  <th>Use of the Day</th>
-                                  <th>Employee</th>
-                                  <th>Notes</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {group.rows.map((row) => (
-                                  <tr key={`weekly-daily-balance-${group.dayKey}-${row.id}-${row.date}`}>
-                                    <td>{formatDate(row.date)}</td>
-                                    <td>{row.serviceName}</td>
-                                    <td>{row.lineCard}</td>
-                                    <td className={row.amount >= 0 ? 'positive' : 'negative'}>{formatCurrency(row.amount)}</td>
-                                    <td>{formatCurrency(row.cashInHand)}</td>
-                                    <td>{formatCurrency(row.dailyConsumption)}</td>
-                                    <td>{row.employeeName}</td>
-                                    <td>{row.notes}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
+                              <p className="daily-circulation-line">
+                                <strong>The current amount of money in circulation within the business:</strong>{' '}
+                                {formatCurrency(group.circulationAmount)}
+                              </p>
+                              <p className="daily-notes-line">
+                                <strong>Notes:</strong> {getDisplayNotes(group.rows)}
+                              </p>
+
+                              <div className="weekly-day-summary-grid">
+                                <div className="weekly-day-summary-item">
+                                  <span>Money In Circulation</span>
+                                  <strong>{formatCurrency(group.circulationAmount)}</strong>
+                                </div>
+                                <div className="weekly-day-summary-item">
+                                  <span>Total Line/Card Amount</span>
+                                  <strong>{formatCurrency(group.totalLineAmounts)}</strong>
+                                </div>
+                                <div className="weekly-day-summary-item">
+                                  <span>Total Use of the Day</span>
+                                  <strong>{formatCurrency(group.totalConsumption)}</strong>
+                                </div>
+                                <div className="weekly-day-summary-item">
+                                  <span>Employees</span>
+                                  <strong>{group.employees.join(', ') || 'N/A'}</strong>
+                                </div>
+                              </div>
+
+                              <div className="table-container">
+                                <table className="transactions-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Date</th>
+                                      <th>Service</th>
+                                      <th>Line/Card</th>
+                                      <th>Amount</th>
+                                      <th>Cash in Hand</th>
+                                      <th>Use of the Day</th>
+                                      <th>Employee</th>
+                                      <th>Notes</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {group.rows.map((row) => (
+                                      <tr key={`weekly-daily-balance-${group.dayKey}-${row.id}-${row.date}`}>
+                                        <td>{formatDate(row.date)}</td>
+                                        <td>{row.serviceName}</td>
+                                        <td>{row.lineCard}</td>
+                                        <td className={row.amount >= 0 ? 'positive' : 'negative'}>{formatCurrency(row.amount)}</td>
+                                        <td>{formatCurrency(row.cashInHand)}</td>
+                                        <td>{formatCurrency(row.dailyConsumption)}</td>
+                                        <td>{row.employeeName}</td>
+                                        <td>{row.notes}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
 
