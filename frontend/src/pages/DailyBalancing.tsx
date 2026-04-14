@@ -274,6 +274,9 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="section-header">Saved lines/cards</div>
+              <button type="button" className="line-add-btn" onClick={() => navigate('/registered-details')}>
+                Edit Registered Lines/Cards
+              </button>
               <div className="line-table saved-lines-table">
                 <div className="line-table-header saved-lines-header">
                   <span>Service</span>

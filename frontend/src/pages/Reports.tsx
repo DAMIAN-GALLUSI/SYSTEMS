@@ -181,6 +181,18 @@ const getDailyCirculationAmount = (rows: DailyBalancingReportRow[]) => {
   return cashInHand + lineAmountsTotal;
 };
 
+const getDisplayNotes = (rows: DailyBalancingReportRow[]) => {
+  const uniqueNotes = Array.from(
+    new Set(
+      rows
+        .map((row) => row.notes?.trim())
+        .filter((note): note is string => Boolean(note && note !== '-'))
+    )
+  );
+
+  return uniqueNotes.length > 0 ? uniqueNotes.join(' | ') : '-';
+};
+
 const getWeeklyBalancingGroups = (rows: DailyBalancingReportRow[]): WeeklyBalancingGroup[] => {
   if (rows.length < 1) {
     return [];
@@ -548,11 +560,9 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                         <strong>The current amount of money in circulation within the business:</strong>{' '}
                         {formatCurrency(getDailyCirculationAmount(dailyBalancingRows))}
                       </p>
-                      {dailyBalancingRows[0]?.notes && dailyBalancingRows[0].notes !== '-' && (
-                        <p className="daily-notes-line">
-                          <strong>Notes:</strong> {dailyBalancingRows[0].notes}
-                        </p>
-                      )}
+                      <p className="daily-notes-line">
+                        <strong>Notes:</strong> {getDisplayNotes(dailyBalancingRows)}
+                      </p>
                       <div className="table-container">
                         <table className="transactions-table">
                           <thead>
@@ -599,6 +609,14 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                             <h4>{group.dateLabel}</h4>
                             <p>{group.rows.length} records</p>
                           </div>
+
+                          <p className="daily-circulation-line">
+                            <strong>The current amount of money in circulation within the business:</strong>{' '}
+                            {formatCurrency(group.circulationAmount)}
+                          </p>
+                          <p className="daily-notes-line">
+                            <strong>Notes:</strong> {getDisplayNotes(group.rows)}
+                          </p>
 
                           <div className="weekly-day-summary-grid">
                             <div className="weekly-day-summary-item">

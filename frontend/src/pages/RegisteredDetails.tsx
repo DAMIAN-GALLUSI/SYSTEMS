@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { SERVICES } from '../utils/constants';
@@ -59,6 +59,30 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
+  useEffect(() => {
+    const raw = localStorage.getItem(REGISTERED_DETAILS_STORAGE_KEY);
+    if (!raw) {
+      return;
+    }
+
+    try {
+      const parsed: SavedRegisteredDetails = JSON.parse(raw);
+      if (!Array.isArray(parsed.entries) || parsed.entries.length < 1) {
+        return;
+      }
+
+      setEntries(
+        parsed.entries.map((entry) => ({
+          serviceInput: entry.serviceName || entry.serviceType,
+          lineCard: entry.lineCard,
+        }))
+      );
+      setMessage({ type: 'success', text: 'Loaded your saved lines. You can edit and save again.' });
+    } catch {
+      setEntries([createEmptyEntry()]);
+    }
+  }, []);
+
   const handleEntryChange = (index: number, field: keyof LineEntry, value: string) => {
     const nextEntries = [...entries];
     nextEntries[index] = {
@@ -106,7 +130,6 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       localStorage.setItem(REGISTERED_DETAILS_STORAGE_KEY, JSON.stringify(payload));
 
       setMessage({ type: 'success', text: 'Registered details saved. Continue to Daily Balancing.' });
-      setEntries([createEmptyEntry()]);
       navigate('/daily-balancing');
     } catch (error: any) {
       setMessage({
