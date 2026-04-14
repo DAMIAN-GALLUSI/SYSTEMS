@@ -22,6 +22,7 @@ interface SavedRegisteredDetails {
 
 interface SavedDailyBalancing {
   savedAt: string;
+  savedDayKey?: string;
   entries: LineAmountEntry[];
   cashInHand: string;
   dailyConsumption: string;
@@ -36,15 +37,17 @@ interface LineAmountEntry extends RegisteredLineEntry {
 const REGISTERED_DETAILS_STORAGE_KEY = 'registered-line-details';
 const SAVED_DAILY_BALANCING_STORAGE_KEY = 'saved-daily-balancing';
 
-const getDayKey = (dateValue: string) => {
-  const date = new Date(dateValue);
+const getDayKeyFromDate = (date: Date) => {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, '0');
   const day = `${date.getDate()}`.padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
-const isToday = (dateValue: string) => getDayKey(dateValue) === getDayKey(new Date().toISOString());
+const getDayKey = (dateValue: string) => getDayKeyFromDate(new Date(dateValue));
+const getTodayDayKey = () => getDayKeyFromDate(new Date());
+
+const isTodayEntry = (saved: SavedDailyBalancing) => (saved.savedDayKey || getDayKey(saved.savedAt)) === getTodayDayKey();
 
 const getSavedCirculationAmount = (saved: SavedDailyBalancing) => {
   const cash = Number(saved.cashInHand);
@@ -139,8 +142,8 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
   };
 
   const todaySavedEntry = useMemo(() => {
-    const todayKey = getDayKey(new Date().toISOString());
-    const matches = savedDailyBalancingHistory.filter((entry) => getDayKey(entry.savedAt) === todayKey);
+    const todayKey = getTodayDayKey();
+    const matches = savedDailyBalancingHistory.filter((entry) => (entry.savedDayKey || getDayKey(entry.savedAt)) === todayKey);
     if (matches.length < 1) {
       return null;
     }
@@ -199,6 +202,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
       const saveBatchId = `${Date.now()}`;
       const savedPayload: SavedDailyBalancing = {
         savedAt: new Date().toISOString(),
+        savedDayKey: getTodayDayKey(),
         entries: lineEntries.map((entry) => ({
           ...entry,
           amount: String(entry.amount),
@@ -223,8 +227,8 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
       });
 
       const updatedHistory = [...savedDailyBalancingHistory];
-      const todayKey = getDayKey(savedPayload.savedAt);
-      const todayIndex = updatedHistory.findIndex((entry) => getDayKey(entry.savedAt) === todayKey);
+      const todayKey = savedPayload.savedDayKey;
+      const todayIndex = updatedHistory.findIndex((entry) => (entry.savedDayKey || getDayKey(entry.savedAt)) === todayKey);
 
       if (todayIndex >= 0) {
         updatedHistory[todayIndex] = savedPayload;
@@ -349,7 +353,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
 
               {todaySavedEntry && (
                 <button type="button" className="line-add-btn" onClick={handleEditTodaySaved}>
-                  Edit Today's Saved Details
+                  Edit Today's Saved Details (Same Day Only)
                 </button>
               )}
 
@@ -367,8 +371,13 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                     <div className="saved-report-panel" style={{ marginTop: '1rem' }}>
                       <div className="section-header">Saved Daily Balancing</div>
                       <p><strong>Saved at:</strong> {new Date(savedDailyBalancing.savedAt).toLocaleString('en-TZ')}</p>
-                      {!isToday(savedDailyBalancing.savedAt) && (
+                      {!isTodayEntry(savedDailyBalancing) && (
                         <p><strong>Note:</strong> This is a past-day record and is locked from editing.</p>
+                      )}
+                      {isTodayEntry(savedDailyBalancing) && (
+                        <button type="button" className="line-add-btn" onClick={handleEditTodaySaved}>
+                          Edit This Saved Entry
+                        </button>
                       )}
                       <p><strong>Cash in hand:</strong> {new Intl.NumberFormat('en-TZ').format(Number(savedDailyBalancing.cashInHand))} TZS</p>
                       <p><strong>Use of the day:</strong> {new Intl.NumberFormat('en-TZ').format(Number(savedDailyBalancing.dailyConsumption))} TZS</p>

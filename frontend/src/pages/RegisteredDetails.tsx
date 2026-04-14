@@ -77,7 +77,6 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
           lineCard: entry.lineCard,
         }))
       );
-      setMessage({ type: 'success', text: 'Loaded your saved lines. You can edit and save again.' });
     } catch {
       setEntries([createEmptyEntry()]);
     }
@@ -128,9 +127,10 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       };
 
       localStorage.setItem(REGISTERED_DETAILS_STORAGE_KEY, JSON.stringify(payload));
-
-      setMessage({ type: 'success', text: 'Registered details saved. Continue to Daily Balancing.' });
-      navigate('/daily-balancing');
+      setMessage({ type: 'success', text: 'Line saved successfully.' });
+      window.setTimeout(() => {
+        navigate('/daily-balancing');
+      }, 1000);
     } catch (error: any) {
       setMessage({
         type: 'error',
