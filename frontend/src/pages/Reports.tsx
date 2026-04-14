@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { reportAPI } from '../services/api';
 import { Transaction } from '../types';
@@ -386,12 +386,6 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
     }
   };
 
-  const totalTransactionsAcrossPeriods = useMemo(() => {
-    return PERIODS.reduce((sum, period) => {
-      return sum + (reportsByPeriod[period.key]?.summary.totalTransactions || 0);
-    }, 0);
-  }, [reportsByPeriod]);
-
   const downloadPdfReport = (period: PeriodConfig) => {
     const reportData = reportsByPeriod[period.key];
     if (!reportData) {
@@ -487,11 +481,6 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
         </div>
 
         {error && <div className="report-error">{error}</div>}
-
-        <div className="period-overview">
-          <h2>Report Overview</h2>
-          <p>Total records across all sections: {totalTransactionsAcrossPeriods}</p>
-        </div>
 
         {PERIODS.map((period) => {
           const reportData = reportsByPeriod[period.key];
@@ -669,31 +658,6 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                           </div>
                         </div>
                       ))}
-                    </div>
-                  )}
-
-                  {period.key !== 'day' && (
-                    <div className="summary-section">
-                      <div className="summary-grid">
-                        <div className="summary-item">
-                          <h3>Total Transactions</h3>
-                          <p>{reportData.summary.totalTransactions}</p>
-                        </div>
-                        <div className="summary-item">
-                          <h3>Total Deposits</h3>
-                          <p className="positive">{formatCurrency(reportData.summary.totalDeposits)}</p>
-                        </div>
-                        <div className="summary-item">
-                          <h3>Total Withdrawals</h3>
-                          <p className="negative">{formatCurrency(reportData.summary.totalWithdrawals)}</p>
-                        </div>
-                        <div className="summary-item">
-                          <h3>Net Profit</h3>
-                          <p className={reportData.summary.netProfit >= 0 ? 'positive' : 'negative'}>
-                            {formatCurrency(reportData.summary.netProfit)}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   )}
 
