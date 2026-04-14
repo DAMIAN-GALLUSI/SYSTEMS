@@ -54,6 +54,27 @@ interface WeeklyBalancingGroup {
   employees: string[];
 }
 
+interface MonthlyBalancingGroup {
+  weekKey: string;
+  weekLabel: string;
+  days: WeeklyBalancingGroup[];
+  totalCirculation: number;
+  totalLineAmounts: number;
+  totalConsumption: number;
+  employees: string[];
+}
+
+interface YearMonthSummary {
+  monthKey: string;
+  monthLabel: string;
+  activeDays: number;
+  lineEntries: number;
+  totalLineAmounts: number;
+  totalConsumption: number;
+  averageCirculation: number;
+  closingCirculation: number;
+}
+
 type PeriodKey = 'day' | 'week' | 'month' | 'year';
 
 interface PeriodConfig {
@@ -228,6 +249,110 @@ const getWeeklyBalancingGroups = (rows: DailyBalancingReportRow[]): WeeklyBalanc
   return groups;
 };
 
+const getMonthWeekKey = (dayKey: string) => {
+  const date = new Date(`${dayKey}T12:00:00`);
+  const dayOfMonth = date.getDate();
+  const weekStart = Math.floor((dayOfMonth - 1) / 7) * 7 + 1;
+  const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const weekEnd = Math.min(weekStart + 6, daysInMonth);
+  return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${weekStart}`.padStart(2, '0')}-${`${weekEnd}`.padStart(2, '0')}`;
+};
+
+const getMonthWeekLabel = (weekKey: string) => {
+  const [, year, month, startDay, endDay] = weekKey.match(/^(\d{4})-(\d{2})-(\d{2})-(\d{2})$/) || [];
+  if (!year || !month || !startDay || !endDay) {
+    return weekKey;
+  }
+
+  return `Week ${startDay}-${endDay} ${new Date(`${year}-${month}-01T12:00:00`).toLocaleString('en-TZ', {
+    month: 'long',
+    year: 'numeric',
+  })}`;
+};
+
+const getMonthlyBalancingGroups = (rows: DailyBalancingReportRow[]): MonthlyBalancingGroup[] => {
+  if (rows.length < 1) {
+    return [];
+  }
+
+  const weeklyGroups = getWeeklyBalancingGroups(rows);
+  const grouped = new Map<string, WeeklyBalancingGroup[]>();
+
+  weeklyGroups.forEach((dayGroup) => {
+    const weekKey = getMonthWeekKey(dayGroup.dayKey);
+    const current = grouped.get(weekKey) || [];
+    current.push(dayGroup);
+    grouped.set(weekKey, current);
+  });
+
+  const monthlyGroups = Array.from(grouped.entries()).map(([weekKey, days]) => {
+    const employees = Array.from(new Set(days.flatMap((day) => day.employees)));
+    const totalCirculation = days.reduce((sum, day) => sum + day.circulationAmount, 0);
+    const totalLineAmounts = days.reduce((sum, day) => sum + day.totalLineAmounts, 0);
+    const totalConsumption = days.reduce((sum, day) => sum + day.totalConsumption, 0);
+
+    return {
+      weekKey,
+      weekLabel: getMonthWeekLabel(weekKey),
+      days,
+      totalCirculation,
+      totalLineAmounts,
+      totalConsumption,
+      employees,
+    };
+  });
+
+  monthlyGroups.sort((a, b) => b.weekKey.localeCompare(a.weekKey));
+  return monthlyGroups;
+};
+
+const getYearMonthSummaries = (rows: DailyBalancingReportRow[]): YearMonthSummary[] => {
+  if (rows.length < 1) {
+    return [];
+  }
+
+  const grouped = new Map<string, DailyBalancingReportRow[]>();
+
+  rows.forEach((row) => {
+    const date = new Date(row.date);
+    if (Number.isNaN(date.getTime())) {
+      return;
+    }
+
+    const monthKey = `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}`;
+    const current = grouped.get(monthKey) || [];
+    current.push(row);
+    grouped.set(monthKey, current);
+  });
+
+  const monthlySummaries = Array.from(grouped.entries()).map(([monthKey, monthRows]) => {
+    const dailyGroups = getWeeklyBalancingGroups(monthRows);
+    const totalLineAmounts = monthRows.reduce((sum, row) => sum + row.amount, 0);
+    const totalConsumption = monthRows.reduce((sum, row) => sum + row.dailyConsumption, 0);
+    const totalCirculation = dailyGroups.reduce((sum, day) => sum + day.circulationAmount, 0);
+    const averageCirculation = dailyGroups.length > 0 ? totalCirculation / dailyGroups.length : 0;
+    const sortedDays = [...dailyGroups].sort((a, b) => new Date(a.dayKey).getTime() - new Date(b.dayKey).getTime());
+    const closingCirculation = sortedDays.length > 0 ? sortedDays[sortedDays.length - 1].circulationAmount : 0;
+
+    return {
+      monthKey,
+      monthLabel: new Date(`${monthKey}-01T12:00:00`).toLocaleString('en-TZ', {
+        month: 'long',
+        year: 'numeric',
+      }),
+      activeDays: dailyGroups.length,
+      lineEntries: monthRows.length,
+      totalLineAmounts,
+      totalConsumption,
+      averageCirculation,
+      closingCirculation,
+    };
+  });
+
+  monthlySummaries.sort((a, b) => b.monthKey.localeCompare(a.monthKey));
+  return monthlySummaries;
+};
+
 const getPeriodRange = (period: PeriodKey) => {
   const now = new Date();
   const endDate = new Date(now);
@@ -299,12 +424,25 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
   const [filters, setFilters] = useState({
     serviceType: ''
   });
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    'daily-balance': true,
+    'weekly-balance': false,
+    'monthly-balance': false,
+    'yearly-summary': false,
+  });
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFilters({
       ...filters,
       [e.target.name]: e.target.value
     });
+  };
+
+  const toggleSection = (sectionKey: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey],
+    }));
   };
 
   const generateReports = async () => {
@@ -442,6 +580,9 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
     loadSelectedDailyReport(getTodayInputValue());
   }, []);
 
+  const monthlyBalancingGroups =
+    reportsByPeriod.month ? getMonthlyBalancingGroups(getDailyBalancingRows(reportsByPeriod.month.transactions)) : [];
+
   return (
     <div className="reports-container">
       <Navbar onLogout={onLogout} />
@@ -482,6 +623,36 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
 
         {error && <div className="report-error">{error}</div>}
 
+        <div className="report-sections-nav">
+          <p className="nav-label">Jump to Report:</p>
+          <div className="nav-buttons">
+            <button
+              onClick={() => toggleSection('daily-balance')}
+              className={`nav-btn ${expandedSections['daily-balance'] ? 'active' : ''}`}
+            >
+              {expandedSections['daily-balance'] ? '▼' : '▶'} Daily Report
+            </button>
+            <button
+              onClick={() => toggleSection('weekly-balance')}
+              className={`nav-btn ${expandedSections['weekly-balance'] ? 'active' : ''}`}
+            >
+              {expandedSections['weekly-balance'] ? '▼' : '▶'} Weekly Report
+            </button>
+            <button
+              onClick={() => toggleSection('monthly-balance')}
+              className={`nav-btn ${expandedSections['monthly-balance'] ? 'active' : ''}`}
+            >
+              {expandedSections['monthly-balance'] ? '▼' : '▶'} Monthly Report
+            </button>
+            <button
+              onClick={() => toggleSection('yearly-summary')}
+              className={`nav-btn ${expandedSections['yearly-summary'] ? 'active' : ''}`}
+            >
+              {expandedSections['yearly-summary'] ? '▼' : '▶'} Yearly Report
+            </button>
+          </div>
+        </div>
+
         {PERIODS.map((period) => {
           const reportData = reportsByPeriod[period.key];
           const dailyBalancingRows = reportData ? getLatestDailyBalancingRows(getDailyBalancingRows(reportData.transactions)) : [];
@@ -489,9 +660,16 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
             period.key === 'week' && reportData
               ? getWeeklyBalancingGroups(getDailyBalancingRows(reportData.transactions))
               : [];
+          const yearMonthSummaries =
+            period.key === 'year' && reportData
+              ? getYearMonthSummaries(getLatestDailyBalancingRows(getDailyBalancingRows(reportData.transactions)))
+              : [];
+
+          const sectionKey = period.key === 'day' ? 'daily-balance' : period.key === 'week' ? 'weekly-balance' : period.key === 'month' ? 'monthly-balance' : 'yearly-summary';
+          const isExpanded = expandedSections[sectionKey];
 
           return (
-            <section className="period-section" key={period.key}>
+            <section className="period-section" key={period.key} style={{ display: isExpanded ? 'block' : 'none' }}>
               <div className="period-header">
                 <div>
                   <h2>{period.title}</h2>
@@ -543,8 +721,16 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                   )}
 
                   {period.key === 'day' && dailyBalancingRows.length > 0 && (
-                    <div className="daily-balancing-report-section">
-                      <h3>Saved From Daily Balancing</h3>
+                    <div className="daily-balancing-report-section"> 
+                      <button
+                        type="button"
+                        className="collapse-toggle-btn"
+                        onClick={() => toggleSection('daily-balance')}
+                      >
+                        {expandedSections['daily-balance'] ? '▼' : '▶'} Saved From Daily Balancing
+                      </button>
+                      {expandedSections['daily-balance'] && (
+                      <div className="collapsible-content">
                       <p className="daily-circulation-line">
                         <strong>The current amount of money in circulation within the business:</strong>{' '}
                         {formatCurrency(getDailyCirculationAmount(dailyBalancingRows))}
@@ -582,12 +768,22 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                           </tbody>
                         </table>
                       </div>
+                      </div>
+                      )}
                     </div>
                   )}
 
                   {period.key === 'week' && weeklyBalancingGroups.length > 0 && (
                     <div className="weekly-balancing-report-section">
-                      <h3>Saved From Daily Balancing (Weekly Full Details)</h3>
+                      <button
+                        type="button"
+                        className="collapse-toggle-btn"
+                        onClick={() => toggleSection('weekly-balance')}
+                      >
+                        {expandedSections['weekly-balance'] ? '▼' : '▶'} Saved From Daily Balancing (Weekly Full Details)
+                      </button>
+                      {expandedSections['weekly-balance'] && (
+                      <div className="collapsible-content">
                       <p className="weekly-balancing-description">
                         A complete day-by-day breakdown of the week, including circulation, line amounts, usage, and employee entries.
                       </p>
@@ -661,7 +857,192 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                     </div>
                   )}
 
-                  {period.key !== 'week' && (
+                  {period.key === 'month' && monthlyBalancingGroups.length > 0 && (
+                    <div className="monthly-balancing-report-section">
+                      <button
+                        type="button"
+                        className="collapse-toggle-btn"
+                        onClick={() => toggleSection('monthly-balance')}
+                      >
+                        {expandedSections['monthly-balance'] ? '▼' : '▶'} Saved From Daily Balancing (Monthly Structured View)
+                      </button>
+                      {expandedSections['monthly-balance'] && (
+                      <div className="collapsible-content">
+                      <p className="monthly-balancing-description">
+                        A month-by-month breakdown grouped into weeks, so the report stays clear, ordered, and easy to review.
+                      </p>
+
+                      <div className="monthly-summary-grid">
+                        <div className="monthly-summary-item">
+                          <span>Total Circulation</span>
+                          <strong>{formatCurrency(monthlyBalancingGroups.reduce((sum, group) => sum + group.totalCirculation, 0))}</strong>
+                        </div>
+                        <div className="monthly-summary-item">
+                          <span>Total Line/Card Amount</span>
+                          <strong>{formatCurrency(monthlyBalancingGroups.reduce((sum, group) => sum + group.totalLineAmounts, 0))}</strong>
+                        </div>
+                        <div className="monthly-summary-item">
+                          <span>Total Use of the Day</span>
+                          <strong>{formatCurrency(monthlyBalancingGroups.reduce((sum, group) => sum + group.totalConsumption, 0))}</strong>
+                        </div>
+                        <div className="monthly-summary-item">
+                          <span>Weeks in Report</span>
+                          <strong>{monthlyBalancingGroups.length}</strong>
+                        </div>
+                      </div>
+
+                      {monthlyBalancingGroups.map((group) => (
+                        <div className="monthly-week-group" key={`monthly-group-${group.weekKey}`}>
+                          <div className="monthly-week-header">
+                            <h4>{group.weekLabel}</h4>
+                            <p>{group.days.length} days</p>
+                          </div>
+
+                          <div className="monthly-week-summary-grid">
+                            <div className="monthly-week-summary-item">
+                              <span>Money In Circulation</span>
+                              <strong>{formatCurrency(group.totalCirculation)}</strong>
+                            </div>
+                            <div className="monthly-week-summary-item">
+                              <span>Total Line/Card Amount</span>
+                              <strong>{formatCurrency(group.totalLineAmounts)}</strong>
+                            </div>
+                            <div className="monthly-week-summary-item">
+                              <span>Total Use of the Day</span>
+                              <strong>{formatCurrency(group.totalConsumption)}</strong>
+                            </div>
+                            <div className="monthly-week-summary-item">
+                              <span>Employees</span>
+                              <strong>{group.employees.join(', ') || 'N/A'}</strong>
+                            </div>
+                          </div>
+
+                          {group.days.map((day) => (
+                            <div className="monthly-day-group" key={`monthly-day-${day.dayKey}`}>
+                              <div className="monthly-day-header">
+                                <h5>{day.dateLabel}</h5>
+                                <p>{day.rows.length} records</p>
+                              </div>
+
+                              <p className="daily-circulation-line">
+                                <strong>The current amount of money in circulation within the business:</strong>{' '}
+                                {formatCurrency(day.circulationAmount)}
+                              </p>
+                              <p className="daily-notes-line">
+                                <strong>Notes:</strong> {getDisplayNotes(day.rows)}
+                              </p>
+
+                              <div className="table-container">
+                                <table className="transactions-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Date</th>
+                                      <th>Service</th>
+                                      <th>Line/Card</th>
+                                      <th>Amount</th>
+                                      <th>Cash in Hand</th>
+                                      <th>Use of the Day</th>
+                                      <th>Employee</th>
+                                      <th>Notes</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {day.rows.map((row) => (
+                                      <tr key={`monthly-day-row-${day.dayKey}-${row.id}-${row.date}`}>
+                                        <td>{formatDate(row.date)}</td>
+                                        <td>{row.serviceName}</td>
+                                        <td>{row.lineCard}</td>
+                                        <td className={row.amount >= 0 ? 'positive' : 'negative'}>{formatCurrency(row.amount)}</td>
+                                        <td>{formatCurrency(row.cashInHand)}</td>
+                                        <td>{formatCurrency(row.dailyConsumption)}</td>
+                                        <td>{row.employeeName}</td>
+                                        <td>{row.notes}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                      </div>
+                      )}
+                    </div>
+                  )}
+
+                  {period.key === 'year' && yearMonthSummaries.length > 0 && (
+                    <div className="yearly-summary-report-section">
+                      <button
+                        type="button"
+                        className="collapse-toggle-btn"
+                        onClick={() => toggleSection('yearly-summary')}
+                      >
+                        {expandedSections['yearly-summary'] ? '▼' : '▶'} Yearly Report Structured by Month
+                      </button>
+                      {expandedSections['yearly-summary'] && (
+                      <div className="collapsible-content">
+                      <p className="yearly-summary-description">
+                        A clear month-by-month summary based on saved daily balancing data only.
+                      </p>
+
+                      <div className="yearly-summary-grid">
+                        <div className="yearly-summary-item">
+                          <span>Months Covered</span>
+                          <strong>{yearMonthSummaries.length}</strong>
+                        </div>
+                        <div className="yearly-summary-item">
+                          <span>Total Active Days</span>
+                          <strong>{yearMonthSummaries.reduce((sum, month) => sum + month.activeDays, 0)}</strong>
+                        </div>
+                        <div className="yearly-summary-item">
+                          <span>Total Line/Card Amount</span>
+                          <strong>{formatCurrency(yearMonthSummaries.reduce((sum, month) => sum + month.totalLineAmounts, 0))}</strong>
+                        </div>
+                        <div className="yearly-summary-item">
+                          <span>Total Use of the Day</span>
+                          <strong>{formatCurrency(yearMonthSummaries.reduce((sum, month) => sum + month.totalConsumption, 0))}</strong>
+                        </div>
+                        <div className="yearly-summary-item">
+                          <span>Latest Closing Circulation</span>
+                          <strong>{formatCurrency(yearMonthSummaries[0]?.closingCirculation || 0)}</strong>
+                        </div>
+                      </div>
+
+                      <div className="table-container">
+                        <table className="transactions-table yearly-month-table">
+                          <thead>
+                            <tr>
+                              <th>Month</th>
+                              <th>Active Days</th>
+                              <th>Saved Line Entries</th>
+                              <th>Total Line/Card Amount</th>
+                              <th>Total Use of the Day</th>
+                              <th>Average Circulation</th>
+                              <th>Closing Circulation</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {yearMonthSummaries.map((month) => (
+                              <tr key={`year-month-${month.monthKey}`}>
+                                <td>{month.monthLabel}</td>
+                                <td>{month.activeDays}</td>
+                                <td>{month.lineEntries}</td>
+                                <td>{formatCurrency(month.totalLineAmounts)}</td>
+                                <td>{formatCurrency(month.totalConsumption)}</td>
+                                <td>{formatCurrency(month.averageCirculation)}</td>
+                                <td>{formatCurrency(month.closingCirculation)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      </div>
+                      )}
+                    </div>
+                  )}
+
+                  {period.key === 'day' && (
                     <div className="transactions-table-section">
                       <h3>{period.title} Transactions</h3>
                       <div className="table-container">

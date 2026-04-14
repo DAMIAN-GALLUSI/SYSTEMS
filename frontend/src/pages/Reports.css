@@ -18,6 +18,55 @@
   font-weight: 600;
 }
 
+.report-sections-nav {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  position: sticky;
+  top: 2rem;
+  z-index: 50;
+}
+
+.nav-label {
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.95rem;
+}
+
+.nav-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.nav-btn {
+  padding: 0.7rem 1rem;
+  border: 2px solid #e5e7eb;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #4b5563;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.nav-btn:hover {
+  border-color: #0066cc;
+  background: #f0f8ff;
+}
+
+.nav-btn.active {
+  background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+  color: white;
+  border-color: #0052a3;
+}
+
 .period-overview {
   background: white;
   border-radius: 12px;
@@ -89,6 +138,45 @@
   background: #f8fbff;
 }
 
+.collapse-toggle-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #e0f2fe 0%, #e7f5ff 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #1e3a8a;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.collapse-toggle-btn:hover {
+  background: linear-gradient(135deg, #b0e0fc 0%, #bde7f8 100%);
+  transform: translateX(2px);
+}
+
+.collapsible-content {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+  }
+  to {
+    opacity: 1;
+    max-height: 10000px;
+  }
+}
+
 .weekly-balancing-report-section {
   margin-bottom: 1.5rem;
   padding: 1rem;
@@ -105,6 +193,141 @@
 .weekly-balancing-description {
   margin: 0 0 1rem;
   color: #4b5563;
+}
+
+.monthly-balancing-report-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid #dbeafe;
+  background: #f8fbff;
+}
+
+.monthly-balancing-report-section h3 {
+  margin: 0 0 0.6rem;
+  color: #1d4ed8;
+}
+
+.monthly-balancing-description {
+  margin: 0 0 1rem;
+  color: #4b5563;
+}
+
+.monthly-summary-grid,
+.monthly-week-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.monthly-summary-item,
+.monthly-week-summary-item {
+  border-radius: 8px;
+  background: #eef2ff;
+  padding: 0.7rem 0.8rem;
+}
+
+.monthly-summary-item span,
+.monthly-week-summary-item span {
+  display: block;
+  color: #4b5563;
+  font-size: 0.8rem;
+  margin-bottom: 0.2rem;
+}
+
+.monthly-summary-item strong,
+.monthly-week-summary-item strong {
+  color: #111827;
+  font-size: 0.95rem;
+}
+
+.monthly-week-group {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.monthly-week-group:last-child {
+  margin-bottom: 0;
+}
+
+.monthly-week-header,
+.monthly-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.monthly-week-header h4,
+.monthly-day-header h5 {
+  margin: 0;
+  color: #111827;
+}
+
+.monthly-week-header p,
+.monthly-day-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.92rem;
+}
+
+.monthly-day-group {
+  border-top: 1px solid #f3f4f6;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.yearly-summary-report-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid #d1fae5;
+  background: #f7fcf9;
+}
+
+.yearly-summary-report-section h3 {
+  margin: 0 0 0.6rem;
+  color: #065f46;
+}
+
+.yearly-summary-description {
+  margin: 0 0 1rem;
+  color: #4b5563;
+}
+
+.yearly-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.yearly-summary-item {
+  border-radius: 8px;
+  background: #ecfdf5;
+  padding: 0.7rem 0.8rem;
+}
+
+.yearly-summary-item span {
+  display: block;
+  color: #4b5563;
+  font-size: 0.8rem;
+  margin-bottom: 0.2rem;
+}
+
+.yearly-summary-item strong {
+  color: #111827;
+  font-size: 0.95rem;
+}
+
+.yearly-month-table th,
+.yearly-month-table td {
+  white-space: nowrap;
 }
 
 .weekly-day-group {
@@ -412,6 +635,22 @@
     padding: 1rem;
   }
 
+  .report-sections-nav {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    top: 1rem;
+  }
+
+  .nav-buttons {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .nav-btn {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
   .period-header {
     flex-direction: column;
     align-items: stretch;
@@ -427,6 +666,12 @@
   }
 
   .weekly-day-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .monthly-week-header,
+  .monthly-day-header {
     flex-direction: column;
     align-items: flex-start;
   }
