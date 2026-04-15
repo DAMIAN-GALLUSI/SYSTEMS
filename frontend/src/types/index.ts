@@ -41,8 +41,9 @@ export interface DashboardData {
     created_at: string;
   }>;
   summary: {
-    total_deposits: number;
-    total_withdrawals: number;
+    total_circulating: number;
+    current_profit_loss: number;
+    previous_total: number;
     total_transactions: number;
   };
 }
@@ -50,4 +51,5 @@ export interface DashboardData {
 export interface ProfitLossData {
   date: string;
   profit: number;
+  circulatingTotal?: number;
 }

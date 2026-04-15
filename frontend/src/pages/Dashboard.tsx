@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import Navbar from '../components/Navbar';
 import ServiceCard from '../components/ServiceCard';
 import { dashboardAPI } from '../services/api';
@@ -48,14 +48,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     return service ? parseFloat(service.cash_in_hand as any) : 0;
   };
 
-  const totalCash = dashboardData?.services.reduce(
-    (sum, service) => sum + parseFloat(service.cash_in_hand as any), 
-    0
-  ) || 0;
+  const totalCash = dashboardData?.summary?.total_circulating || 0;
 
-  const netProfit = profitLossData.length > 0 
-    ? profitLossData[profitLossData.length - 1].profit 
-    : 0;
+  const netProfit = dashboardData?.summary?.current_profit_loss || 0;
 
   return (
     <div className="dashboard-container">
@@ -65,7 +60,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           <h1>Dashboard</h1>
           <div className="dashboard-summary">
             <div className="summary-card">
-              <h3>Total Cash in Hand</h3>
+              <h3>Total Money in Circulation</h3>
               <p className="summary-amount">
                 {new Intl.NumberFormat('en-TZ', {
                   style: 'currency',
@@ -75,7 +70,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
               </p>
             </div>
             <div className="summary-card">
-              <h3>Current Profit/Loss</h3>
+              <h3>Today vs Previous Day</h3>
               <p className={`summary-amount ${netProfit >= 0 ? 'profit' : 'loss'}`}>
                 {new Intl.NumberFormat('en-TZ', {
                   style: 'currency',
@@ -83,13 +78,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                   minimumFractionDigits: 0
                 }).format(netProfit)}
               </p>
+              <p className="summary-note">
+                {netProfit >= 0 ? 'Profit compared to previous day' : 'Loss compared to previous day'}
+              </p>
             </div>
           </div>
         </div>
 
         <div className="chart-section">
           <div className="chart-header">
-            <h2>Profit/Loss Trend</h2>
+            <h2>Daily Profit/Loss Trend</h2>
             <select 
               value={days} 
               onChange={(e) => setDays(Number(e.target.value))}
@@ -111,6 +109,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                   tickFormatter={(value) => new Date(value).toLocaleDateString('en-TZ', { month: 'short', day: 'numeric' })}
                 />
                 <YAxis />
+                <ReferenceLine y={0} stroke="#9ca3af" strokeDasharray="4 4" />
                 <Tooltip 
                   formatter={(value: number) => [
                     new Intl.NumberFormat('en-TZ', {
@@ -118,7 +117,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                       currency: 'TZS',
                       minimumFractionDigits: 0
                     }).format(value),
-                    'Profit/Loss'
+                    'Daily Change'
                   ]}
                   labelFormatter={(label) => new Date(label).toLocaleDateString('en-TZ')}
                 />
@@ -128,7 +127,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                   dataKey="profit" 
                   stroke="#0066CC" 
                   strokeWidth={2}
-                  name="Profit/Loss"
+                  name="Profit/Loss (vs previous day)"
                   dot={{ fill: '#0066CC', r: 4 }}
                 />
               </LineChart>

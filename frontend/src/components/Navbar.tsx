@@ -23,12 +23,6 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
             Home
           </Link>
           <Link 
-            to="/transactions" 
-            className={location.pathname === '/transactions' ? 'active' : ''}
-          >
-            Record Transactions
-          </Link>
-          <Link 
             to="/registered-details" 
             className={location.pathname === '/registered-details' ? 'active' : ''}
           >
