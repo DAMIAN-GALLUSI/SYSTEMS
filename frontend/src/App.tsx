@@ -36,19 +36,19 @@ function App() {
         <Route 
           path="/" 
           element={
-            isAuthenticated ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />
+            isAuthenticated ? <Navigate to="/daily-balancing" /> : <Login onLogin={handleLogin} />
           } 
         />
         <Route 
           path="/login" 
           element={
-            isAuthenticated ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />
+            isAuthenticated ? <Navigate to="/daily-balancing" /> : <Login onLogin={handleLogin} />
           } 
         />
         <Route 
           path="/register" 
           element={
-            isAuthenticated ? <Navigate to="/dashboard" /> : <Register onRegister={handleLogin} />
+            isAuthenticated ? <Navigate to="/daily-balancing" /> : <Register onRegister={handleLogin} />
           } 
         />
         <Route 

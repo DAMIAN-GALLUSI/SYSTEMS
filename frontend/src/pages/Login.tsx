@@ -24,7 +24,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       const response = await authAPI.login(email, password);
       const { token, user } = response.data;
       onLogin(token, user.role);
-      navigate('/dashboard');
+      navigate('/daily-balancing');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {

@@ -53,7 +53,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
       );
       const { token, user } = response.data;
       onRegister(token, user.role);
-      navigate('/dashboard');
+      navigate('/daily-balancing');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {

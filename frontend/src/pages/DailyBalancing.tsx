@@ -75,6 +75,15 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
   useEffect(() => {
     const raw = localStorage.getItem(REGISTERED_DETAILS_STORAGE_KEY);
     if (!raw) {
+      // Initialize with empty entry if no registered details
+      setLineEntries([
+        {
+          serviceType: 'vodacom' as ServiceType,
+          serviceName: '',
+          lineCard: '',
+          amount: ''
+        }
+      ]);
       return;
     }
 
@@ -93,7 +102,14 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
         }))
       );
     } catch {
-      setLineEntries([]);
+      setLineEntries([
+        {
+          serviceType: 'vodacom' as ServiceType,
+          serviceName: '',
+          lineCard: '',
+          amount: ''
+        }
+      ]);
     }
   }, []);
 
@@ -165,12 +181,34 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
     setMessage({ type: 'success', text: 'Editing today\'s saved details. Save again to update today only.' });
   };
 
+  const handleAddNewLine = () => {
+    setLineEntries([...lineEntries, {
+      serviceType: 'vodacom' as ServiceType,
+      serviceName: '',
+      lineCard: '',
+      amount: ''
+    }]);
+  };
+
+  const handleEditLine = (index: number, field: string, value: string) => {
+    const nextEntries = [...lineEntries];
+    nextEntries[index] = { ...nextEntries[index], [field]: value };
+    setLineEntries(nextEntries);
+  };
+
+  const handleRemoveLine = (index: number) => {
+    if (lineEntries.length === 1) return;
+    setLineEntries(lineEntries.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage({ type: '', text: '' });
 
-    if (lineEntries.length < 1) {
-      setMessage({ type: 'error', text: 'No saved registered details found. Save details first.' });
+    // Validate that we have at least one line with service name and line card
+    const hasInvalidLine = lineEntries.some((entry) => !entry.serviceName.trim() || !entry.lineCard.trim());
+    if (hasInvalidLine) {
+      setMessage({ type: 'error', text: 'Please fill in service name and line/card for all entries.' });
       return;
     }
 
@@ -226,6 +264,17 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
         saveBatchId,
       });
 
+      // Update registered details with the edited lines
+      const registeredDetails: SavedRegisteredDetails = {
+        savedAt: new Date().toISOString(),
+        entries: lineEntries.map((entry) => ({
+          serviceType: entry.serviceType,
+          serviceName: entry.serviceName,
+          lineCard: entry.lineCard,
+        })),
+      };
+      localStorage.setItem(REGISTERED_DETAILS_STORAGE_KEY, JSON.stringify(registeredDetails));
+
       const updatedHistory = [...savedDailyBalancingHistory];
       const todayKey = savedPayload.savedDayKey;
       const todayIndex = updatedHistory.findIndex((entry) => (entry.savedDayKey || getDayKey(entry.savedAt)) === todayKey);
@@ -264,34 +313,39 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
       <div className="transaction-content">
         <div className="transaction-card">
           <h1>Daily Balancing</h1>
-          <p className="subtitle">Enter each line amount, your cash in hand, and use of the day.</p>
+          <p className="subtitle">Manage your registered lines/cards and enter daily balancing details.</p>
 
           {message.text && <div className={`message ${message.type}`}>{message.text}</div>}
 
-          {lineEntries.length < 1 ? (
-            <>
-              <div className="message error">No registered details found yet.</div>
-              <button type="button" className="btn-submit" onClick={() => navigate('/registered-details')}>
-                Go to Register Your Details
-              </button>
-            </>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <div className="section-header">Saved lines/cards</div>
-              <button type="button" className="line-add-btn" onClick={() => navigate('/registered-details')}>
-                Edit Registered Lines/Cards
-              </button>
-              <div className="line-table saved-lines-table">
-                <div className="line-table-header saved-lines-header">
+          <form onSubmit={handleSubmit}>
+            <div className="section-header">Manage Your Registered Lines/Cards</div>
+            <p className="subtitle">Edit your services or add new ones. Changes are saved with today's balancing.</p>
+
+            {lineEntries.length > 0 && (
+              <div className="line-table">
+                <div className="line-table-header">
                   <span>Service</span>
                   <span>Line/Card</span>
                   <span>Amount (TZS)</span>
+                  <span>Action</span>
                 </div>
                 {lineEntries.map((entry, index) => {
                   return (
-                    <div className="line-row saved-lines-row" key={`${entry.serviceType}-${entry.lineCard}-${index}`}>
-                      <span className="service-name saved-service-cell">{entry.serviceName}</span>
-                      <span className="service-name saved-line-card-cell">{entry.lineCard}</span>
+                    <div className="line-row" key={`entry-${index}`}>
+                      <input
+                        type="text"
+                        value={entry.serviceName}
+                        onChange={(e) => handleEditLine(index, 'serviceName', e.target.value)}
+                        placeholder="Service name"
+                        required
+                      />
+                      <input
+                        type="text"
+                        value={entry.lineCard}
+                        onChange={(e) => handleEditLine(index, 'lineCard', e.target.value)}
+                        placeholder="Line/Card number"
+                        required
+                      />
                       <input
                         className="saved-amount-input"
                         type="number"
@@ -302,10 +356,23 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                         onChange={(e) => handleAmountChange(index, e.target.value)}
                         required
                       />
+                      <button
+                        type="button"
+                        className="line-remove-btn"
+                        onClick={() => handleRemoveLine(index)}
+                        disabled={lineEntries.length === 1}
+                      >
+                        Remove
+                      </button>
                     </div>
                   );
                 })}
               </div>
+            )}
+
+            <button type="button" className="line-add-btn" onClick={handleAddNewLine}>
+              + Add Another Line/Card
+            </button>
 
               <div className="form-row">
                 <div className="form-group">
@@ -410,7 +477,6 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                 </>
               )}
             </form>
-          )}
         </div>
       </div>
     </div>
