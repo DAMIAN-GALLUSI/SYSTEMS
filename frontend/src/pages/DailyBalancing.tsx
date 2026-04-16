@@ -197,15 +197,6 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
     setMessage({ type: 'success', text: 'Editing today\'s saved details. Save again to update today only.' });
   };
 
-  const handleAddNewLine = () => {
-    setLineEntries([...lineEntries, {
-      serviceType: 'vodacom' as ServiceType,
-      serviceName: 'Vodacom',
-      lineCard: '',
-      amount: ''
-    }]);
-  };
-
   const handleEditLine = (index: number, field: keyof LineAmountEntry, value: string) => {
     const nextEntries = [...lineEntries];
     if (field === 'serviceType') {
@@ -397,10 +388,6 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                 })}
               </div>
             )}
-
-            <button type="button" className="line-add-btn" onClick={handleAddNewLine}>
-              + Add Another Line/Card
-            </button>
 
               <div className="form-row">
                 <div className="form-group">
