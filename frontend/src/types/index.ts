@@ -37,6 +37,8 @@ export interface ServiceInfo {
 export interface DashboardData {
   services: Array<{
     service_type: ServiceType;
+    line_card: string;
+    amount: number;
     cash_in_hand: number;
     created_at: string;
   }>;

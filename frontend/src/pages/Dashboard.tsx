@@ -43,9 +43,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     }
   };
 
-  const getCashInHand = (serviceType: string) => {
-    const service = dashboardData?.services.find(s => s.service_type === serviceType);
-    return service ? parseFloat(service.cash_in_hand as any) : 0;
+  const getServiceStyle = (serviceType: string) => {
+    return SERVICES.find((service) => service.id === serviceType) || {
+      name: serviceType,
+      color: '#334155',
+      textColor: '#FFFFFF',
+    };
   };
 
   const totalCash = dashboardData?.summary?.total_circulating || 0;
@@ -136,17 +139,25 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         </div>
 
         <div className="services-section">
-          <h2>Service Cards</h2>
+          <h2>Registered Lines/Cards</h2>
           <div className="services-grid">
-            {SERVICES.map(service => (
-              <ServiceCard
-                key={service.id}
-                name={service.name}
-                color={service.color}
-                textColor={service.textColor}
-                cashInHand={getCashInHand(service.id)}
-              />
-            ))}
+            {dashboardData?.services.length ? (
+              dashboardData.services.map((entry, index) => {
+                const style = getServiceStyle(entry.service_type);
+                return (
+                  <ServiceCard
+                    key={`${entry.service_type}-${entry.line_card}-${index}`}
+                    name={style.name}
+                    lineCard={entry.line_card}
+                    color={style.color}
+                    textColor={style.textColor}
+                    amount={Number(entry.amount) || 0}
+                  />
+                );
+              })
+            ) : (
+              <div className="empty-services">No registered line/cards found yet. Save daily balancing details to populate this section.</div>
+            )}
           </div>
         </div>
       </div>

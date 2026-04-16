@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { transactionAPI } from '../services/api';
 import { ServiceType } from '../types';
+import { SERVICES } from '../utils/constants';
 import './TransactionEntry.css';
 
 interface DailyBalancingProps {
@@ -47,6 +47,23 @@ const getDayKeyFromDate = (date: Date) => {
 const getDayKey = (dateValue: string) => getDayKeyFromDate(new Date(dateValue));
 const getTodayDayKey = () => getDayKeyFromDate(new Date());
 
+const normalizeText = (value: string) => value.trim().toLowerCase();
+
+const resolveServiceTypeFromName = (value: string): ServiceType => {
+  const normalized = normalizeText(value);
+  const byId = SERVICES.find((service) => normalizeText(service.id) === normalized);
+  if (byId) {
+    return byId.id;
+  }
+
+  const byName = SERVICES.find((service) => normalizeText(service.name) === normalized);
+  if (byName) {
+    return byName.id;
+  }
+
+  return 'vodacom';
+};
+
 const isTodayEntry = (saved: SavedDailyBalancing) => (saved.savedDayKey || getDayKey(saved.savedAt)) === getTodayDayKey();
 
 const getSavedCirculationAmount = (saved: SavedDailyBalancing) => {
@@ -61,7 +78,6 @@ const getSavedCirculationAmount = (saved: SavedDailyBalancing) => {
 };
 
 const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
-  const navigate = useNavigate();
   const [lineEntries, setLineEntries] = useState<LineAmountEntry[]>([]);
   const [cashInHand, setCashInHand] = useState('');
   const [dailyConsumption, setDailyConsumption] = useState('');
@@ -79,7 +95,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
       setLineEntries([
         {
           serviceType: 'vodacom' as ServiceType,
-          serviceName: '',
+          serviceName: 'Vodacom',
           lineCard: '',
           amount: ''
         }
@@ -95,8 +111,8 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
 
       setLineEntries(
         parsed.entries.map((entry) => ({
-          serviceType: entry.serviceType,
-          serviceName: entry.serviceName || entry.serviceType,
+          serviceType: entry.serviceType || resolveServiceTypeFromName(entry.serviceName || ''),
+          serviceName: entry.serviceName || SERVICES.find((service) => service.id === entry.serviceType)?.name || entry.serviceType,
           lineCard: entry.lineCard,
           amount: '',
         }))
@@ -105,7 +121,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
       setLineEntries([
         {
           serviceType: 'vodacom' as ServiceType,
-          serviceName: '',
+          serviceName: 'Vodacom',
           lineCard: '',
           amount: ''
         }
@@ -184,15 +200,25 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
   const handleAddNewLine = () => {
     setLineEntries([...lineEntries, {
       serviceType: 'vodacom' as ServiceType,
-      serviceName: '',
+      serviceName: 'Vodacom',
       lineCard: '',
       amount: ''
     }]);
   };
 
-  const handleEditLine = (index: number, field: string, value: string) => {
+  const handleEditLine = (index: number, field: keyof LineAmountEntry, value: string) => {
     const nextEntries = [...lineEntries];
-    nextEntries[index] = { ...nextEntries[index], [field]: value };
+    if (field === 'serviceType') {
+      const selectedService = SERVICES.find((service) => service.id === value);
+      nextEntries[index] = {
+        ...nextEntries[index],
+        serviceType: value as ServiceType,
+        serviceName: selectedService?.name || value,
+      };
+    } else {
+      nextEntries[index] = { ...nextEntries[index], [field]: value };
+    }
+
     setLineEntries(nextEntries);
   };
 
@@ -332,13 +358,15 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                 {lineEntries.map((entry, index) => {
                   return (
                     <div className="line-row" key={`entry-${index}`}>
-                      <input
-                        type="text"
-                        value={entry.serviceName}
-                        onChange={(e) => handleEditLine(index, 'serviceName', e.target.value)}
-                        placeholder="Service name"
+                      <select
+                        value={entry.serviceType}
+                        onChange={(e) => handleEditLine(index, 'serviceType', e.target.value)}
                         required
-                      />
+                      >
+                        {SERVICES.map((service) => (
+                          <option key={service.id} value={service.id}>{service.name}</option>
+                        ))}
+                      </select>
                       <input
                         type="text"
                         value={entry.lineCard}

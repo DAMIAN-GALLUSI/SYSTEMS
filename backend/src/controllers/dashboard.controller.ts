@@ -20,6 +20,14 @@ type DailySnapshot = {
   profitOrLoss: number;
 };
 
+type LatestLineCardEntry = {
+  service_type: string;
+  line_card: string;
+  amount: number;
+  cash_in_hand: number;
+  created_at: string;
+};
+
 const DB_ERROR_CODES = new Set(['28P01', '42P01', 'ECONNREFUSED', 'ENOTFOUND']);
 
 const isDatabaseFallbackError = (error: any) => {
@@ -58,6 +66,62 @@ const getTransactionsByUser = async (userId: number): Promise<DashboardTransacti
     const localTransactions = await getLocalTransactionsByUser(userId);
     return localTransactions as DashboardTransaction[];
   }
+};
+
+const getLatestLineCardEntries = (transactions: DashboardTransaction[]): LatestLineCardEntry[] => {
+  const batchMap = new Map<
+    string,
+    { latestCreatedAt: string; entries: DashboardTransaction[] }
+  >();
+
+  for (const transaction of transactions) {
+    const metadata = parseDescription(transaction.description);
+    if (metadata?.mode !== 'daily-balancing-entry') {
+      continue;
+    }
+
+    const dayKey = getDayKey(transaction.created_at);
+    const batchId = typeof metadata?.saveBatchId === 'string' && metadata.saveBatchId.trim().length > 0
+      ? metadata.saveBatchId
+      : `${dayKey}-${transaction.created_at}`;
+
+    const existing = batchMap.get(batchId);
+    if (!existing) {
+      batchMap.set(batchId, {
+        latestCreatedAt: transaction.created_at,
+        entries: [transaction],
+      });
+      continue;
+    }
+
+    existing.entries.push(transaction);
+    if (new Date(transaction.created_at) > new Date(existing.latestCreatedAt)) {
+      existing.latestCreatedAt = transaction.created_at;
+    }
+  }
+
+  if (batchMap.size < 1) {
+    return [];
+  }
+
+  const latestBatch = Array.from(batchMap.values()).sort(
+    (a, b) => new Date(a.latestCreatedAt).getTime() - new Date(b.latestCreatedAt).getTime()
+  ).pop();
+
+  if (!latestBatch) {
+    return [];
+  }
+
+  return latestBatch.entries.map((transaction) => {
+    const metadata = parseDescription(transaction.description);
+    return {
+      service_type: transaction.service_type,
+      line_card: typeof metadata?.lineCard === 'string' ? metadata.lineCard : '-',
+      amount: parseNumber(transaction.amount),
+      cash_in_hand: parseNumber(transaction.cash_in_hand),
+      created_at: transaction.created_at,
+    };
+  });
 };
 
 const buildDailySnapshots = (transactions: DashboardTransaction[]): DailySnapshot[] => {
@@ -137,23 +201,6 @@ const buildDailySnapshots = (transactions: DashboardTransaction[]): DailySnapsho
   });
 };
 
-const getLatestServices = (transactions: DashboardTransaction[]) => {
-  const latestByService = new Map<string, DashboardTransaction>();
-
-  for (const transaction of transactions) {
-    const existing = latestByService.get(transaction.service_type);
-    if (!existing || new Date(transaction.created_at) > new Date(existing.created_at)) {
-      latestByService.set(transaction.service_type, transaction);
-    }
-  }
-
-  return Array.from(latestByService.values()).map((transaction) => ({
-    service_type: transaction.service_type,
-    cash_in_hand: parseNumber(transaction.cash_in_hand),
-    created_at: transaction.created_at,
-  }));
-};
-
 export const getDashboardData = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -163,14 +210,14 @@ export const getDashboardData = async (req: AuthRequest, res: Response) => {
     }
 
     const transactions = await getTransactionsByUser(userId);
-    const services = getLatestServices(transactions);
+    const services = getLatestLineCardEntries(transactions);
     const dailySnapshots = buildDailySnapshots(transactions);
     const latestSnapshot = dailySnapshots.length > 0 ? dailySnapshots[dailySnapshots.length - 1] : null;
     const previousSnapshot = dailySnapshots.length > 1 ? dailySnapshots[dailySnapshots.length - 2] : null;
 
     const totalCirculating = latestSnapshot
       ? latestSnapshot.circulatingTotal
-      : services.reduce((sum, service) => sum + parseNumber(service.cash_in_hand), 0);
+      : services.reduce((sum, service) => sum + parseNumber(service.amount), 0);
 
     const currentProfitLoss = latestSnapshot && previousSnapshot
       ? latestSnapshot.circulatingTotal - previousSnapshot.circulatingTotal

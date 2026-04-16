@@ -3,17 +3,19 @@ import './ServiceCard.css';
 
 interface ServiceCardProps {
   name: string;
+  lineCard: string;
   color: string;
   textColor: string;
-  cashInHand: number;
+  amount: number;
   onClick?: () => void;
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ 
   name, 
+  lineCard,
   color, 
   textColor, 
-  cashInHand,
+  amount,
   onClick 
 }) => {
   const formatCurrency = (amount: number) => {
@@ -33,10 +35,11 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
     >
       <div className="service-card-header">
         <h3>{name}</h3>
+        <p className="line-card-meta">Line/Card: {lineCard}</p>
       </div>
       <div className="service-card-body">
-        <p className="label">Cash in Hand</p>
-        <p className="amount">{formatCurrency(cashInHand)}</p>
+        <p className="label">Entered Amount</p>
+        <p className="amount">{formatCurrency(amount)}</p>
       </div>
     </div>
   );
