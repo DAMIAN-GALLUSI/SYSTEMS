@@ -9,6 +9,7 @@ import DailyBalancing from './pages/DailyBalancing';
 import Reports from './pages/Reports';
 import Services from './pages/Services';
 import Benefits from './pages/Benefits';
+import Landing from './pages/Landing';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -38,7 +39,7 @@ function App() {
         <Route 
           path="/" 
           element={
-            isAuthenticated ? <Navigate to="/daily-balancing" /> : <Login onLogin={handleLogin} />
+            isAuthenticated ? <Navigate to="/daily-balancing" /> : <Landing />
           } 
         />
         <Route 
