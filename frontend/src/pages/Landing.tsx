@@ -1,7 +1,7 @@
 import React from 'react';
 import PublicTopNav from '../components/PublicTopNav';
 import PublicBottomNav from '../components/PublicBottomNav';
-import homeHeroImage from '../assets/home-hero.svg';
+import homeHeroImage from '../assets/smart-home.png';
 import './Landing.css';
 
 const Landing: React.FC = () => {
