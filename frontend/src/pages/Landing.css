@@ -16,23 +16,6 @@
   font-family: 'Manrope', 'Segoe UI', sans-serif;
 }
 
-.landing-page .public-navbar {
-  background: rgba(13, 40, 32, 0.82);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.landing-page .brand-title,
-.landing-page .brand-subtitle,
-.landing-page .public-nav-links a {
-  color: #effdf5;
-}
-
-.landing-page .public-nav-links a:hover,
-.landing-page .public-nav-links a.active {
-  color: #ffffff;
-  background: rgba(34, 197, 125, 0.22);
-}
-
 .landing-main {
   max-width: 1240px;
   margin: 0 auto;

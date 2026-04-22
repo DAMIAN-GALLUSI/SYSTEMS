@@ -23,8 +23,8 @@
   top: 0;
   z-index: 10;
   backdrop-filter: blur(9px);
-  background: rgba(247, 252, 249, 0.85);
-  border-bottom: 1px solid rgba(23, 52, 43, 0.08);
+  background: rgba(13, 40, 32, 0.82);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .public-navbar-inner {
@@ -63,11 +63,12 @@
   font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
   font-size: 1rem;
   font-weight: 700;
+  color: #effdf5;
 }
 
 .brand-subtitle {
   margin: 0;
-  color: var(--text-soft);
+  color: #d5f4e4;
   font-size: 0.76rem;
   font-weight: 500;
 }
@@ -80,7 +81,7 @@
 
 .public-nav-links a {
   text-decoration: none;
-  color: var(--text-soft);
+  color: #effdf5;
   font-weight: 600;
   padding: 0.45rem 0.75rem;
   border-radius: 10px;
@@ -89,8 +90,8 @@
 
 .public-nav-links a:hover,
 .public-nav-links a.active {
-  color: var(--brand-deep);
-  background: rgba(17, 122, 79, 0.12);
+  color: #ffffff;
+  background: rgba(34, 197, 125, 0.22);
 }
 
 .auth-main-grid {
