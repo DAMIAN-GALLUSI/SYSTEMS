@@ -7,6 +7,8 @@ import TransactionEntry from './pages/TransactionEntry';
 import RegisteredDetails from './pages/RegisteredDetails';
 import DailyBalancing from './pages/DailyBalancing';
 import Reports from './pages/Reports';
+import Services from './pages/Services';
+import Benefits from './pages/Benefits';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -49,6 +51,18 @@ function App() {
           path="/register" 
           element={
             isAuthenticated ? <Navigate to="/daily-balancing" /> : <Register onRegister={handleLogin} />
+          } 
+        />
+        <Route 
+          path="/services" 
+          element={
+            isAuthenticated ? <Navigate to="/daily-balancing" /> : <Services />
+          } 
+        />
+        <Route 
+          path="/benefits" 
+          element={
+            isAuthenticated ? <Navigate to="/daily-balancing" /> : <Benefits />
           } 
         />
         <Route 
