@@ -8,6 +8,7 @@ interface PublicAuthLayoutProps {
   subtitle: string;
   children: React.ReactNode;
   footer: React.ReactNode;
+  hideShowcase?: boolean;
 }
 
 const PublicAuthLayout: React.FC<PublicAuthLayoutProps> = ({
@@ -15,14 +16,15 @@ const PublicAuthLayout: React.FC<PublicAuthLayoutProps> = ({
   title,
   subtitle,
   children,
-  footer
+  footer,
+  hideShowcase = false
 }) => {
   return (
     <div className="auth-page">
       <PublicTopNav active={mode} />
 
-      <main className="auth-main-grid">
-        <section className="auth-showcase">
+      <main className={`auth-main-grid${hideShowcase ? ' auth-main-grid-compact' : ''}`}>
+        {!hideShowcase && <section className="auth-showcase">
           <div className="hero-banner">
             <div className="hero-copy">
               <p className="hero-eyebrow">Built for fast and trusted neighborhood transactions</p>
@@ -54,7 +56,7 @@ const PublicAuthLayout: React.FC<PublicAuthLayoutProps> = ({
               </div>
             </div>
           </div>
-        </section>
+        </section>}
 
         <section className="auth-panel">
           <div className="auth-card">

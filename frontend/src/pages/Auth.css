@@ -103,6 +103,15 @@
   gap: 1.5rem;
 }
 
+.auth-main-grid-compact {
+  grid-template-columns: 1fr;
+  max-width: 640px;
+}
+
+.auth-main-grid-compact .auth-panel {
+  position: static;
+}
+
 .auth-showcase h1 {
   margin: 0.5rem 0 0;
   font-family: 'Space Grotesk', 'Segoe UI', sans-serif;

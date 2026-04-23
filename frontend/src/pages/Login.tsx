@@ -36,6 +36,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   return (
     <PublicAuthLayout
       mode="login"
+      hideShowcase
       title="Agent Login"
       subtitle="Access your dashboard, balancing records, and reports."
       footer={

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import PublicTopNav from '../components/PublicTopNav';
 import './Auth.css';
 import './PublicInfo.css';
@@ -34,10 +33,6 @@ const Benefits: React.FC = () => {
             Built to reduce manual work, improve control, and make mobile money operations
             easier for both owners and employees.
           </p>
-          <div className="public-info-actions">
-            <Link to="/login" className="hero-btn hero-btn-primary">Login</Link>
-            <Link to="/register" className="hero-btn hero-btn-secondary">Register</Link>
-          </div>
         </section>
 
         <section className="public-card-grid benefits-grid-two">

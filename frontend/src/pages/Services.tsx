@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import PublicTopNav from '../components/PublicTopNav';
 import { SERVICES } from '../utils/constants';
 import './Auth.css';
@@ -16,10 +15,6 @@ const Services: React.FC = () => {
             The system supports all primary mobile money lines and Lipa Namba channels,
             helping your team manage transactions and balancing from one workspace.
           </p>
-          <div className="public-info-actions">
-            <Link to="/login" className="hero-btn hero-btn-primary">Login</Link>
-            <Link to="/register" className="hero-btn hero-btn-secondary">Create Account</Link>
-          </div>
         </section>
 
         <section className="public-card-grid">

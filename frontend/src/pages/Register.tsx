@@ -65,6 +65,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
   return (
     <PublicAuthLayout
       mode="register"
+      hideShowcase
       title="Create Agent Account"
       subtitle="Set up your profile to begin tracking transactions and reports."
       footer={
