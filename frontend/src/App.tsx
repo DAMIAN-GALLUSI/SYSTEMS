@@ -10,7 +10,7 @@ import Reports from './pages/Reports';
 import Services from './pages/Services';
 import Benefits from './pages/Benefits';
 import Landing from './pages/Landing';
-import Preferences from './pages/Preferences';
+import Preferences from './pages/Preferences.tsx';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
