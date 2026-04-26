@@ -8,6 +8,15 @@ interface PreferencesProps {
 
 const PROFILE_STORAGE_KEY = 'user-profile-preferences';
 const PROFILE_PHOTO_STORAGE_KEY = 'user-profile-photo';
+const LANGUAGE_STORAGE_KEY = 'preferred-language';
+
+type LanguageCode = 'en' | 'sw' | 'fr';
+
+const LANGUAGE_OPTIONS: Array<{ code: LanguageCode; label: string }> = [
+  { code: 'en', label: 'English' },
+  { code: 'sw', label: 'Swahili' },
+  { code: 'fr', label: 'French' },
+];
 
 interface ProfilePreferences {
   fullName: string;
@@ -19,11 +28,13 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
   const [fullName, setFullName] = useState('Your Name');
   const [about, setAbout] = useState('Hey there. I am using Mobile Money Agent System.');
   const [phone, setPhone] = useState('+255 700 000 000');
+  const [language, setLanguage] = useState<LanguageCode>('en');
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [showPhotoEditor, setShowPhotoEditor] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState('');
   const [message, setMessage] = useState('');
+  const [languageMessage, setLanguageMessage] = useState('');
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const cameraVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -65,7 +76,46 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
     if (savedProfilePhoto) {
       setProfilePhoto(savedProfilePhoto);
     }
+
+    const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (savedLanguage === 'en' || savedLanguage === 'sw' || savedLanguage === 'fr') {
+      setLanguage(savedLanguage);
+    }
   }, []);
+
+  const renderFlagIcon = (code: LanguageCode) => {
+    if (code === 'en') {
+      return (
+        <svg viewBox="0 0 24 16" aria-hidden="true">
+          <rect width="24" height="16" fill="#0A3D91" />
+          <path d="M0 0L24 16M24 0L0 16" stroke="#FFFFFF" strokeWidth="4" />
+          <path d="M0 0L24 16M24 0L0 16" stroke="#D91F26" strokeWidth="2" />
+          <path d="M12 0V16M0 8H24" stroke="#FFFFFF" strokeWidth="5" />
+          <path d="M12 0V16M0 8H24" stroke="#D91F26" strokeWidth="3" />
+        </svg>
+      );
+    }
+
+    if (code === 'sw') {
+      return (
+        <svg viewBox="0 0 24 16" aria-hidden="true">
+          <polygon points="0,0 24,0 0,16" fill="#28A745" />
+          <polygon points="24,16 24,0 0,16" fill="#2D79D5" />
+          <polygon points="0,11 24,1 24,5 0,15" fill="#000000" />
+          <polygon points="0,9.6 24,0 24,1 0,10.6" fill="#F7D046" />
+          <polygon points="0,15 24,5.4 24,6.4 0,16" fill="#F7D046" />
+        </svg>
+      );
+    }
+
+    return (
+      <svg viewBox="0 0 24 16" aria-hidden="true">
+        <rect width="8" height="16" fill="#1E4AA8" />
+        <rect x="8" width="8" height="16" fill="#FFFFFF" />
+        <rect x="16" width="8" height="16" fill="#D32029" />
+      </svg>
+    );
+  };
 
   const stopCameraStream = () => {
     if (cameraStreamRef.current) {
@@ -123,13 +173,9 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
         });
       });
     } catch {
-      setCameraError('Camera access is blocked. Allow camera permission in your browser settings, then tap Retry Camera.');
+      setCameraError('Camera permission denied or unavailable. You can still use Gallery.');
+      cameraInputRef.current?.click();
     }
-  };
-
-  const handleOpenCameraPicker = () => {
-    setCameraError('');
-    cameraInputRef.current?.click();
   };
 
   const handleCaptureFromCamera = () => {
@@ -208,6 +254,12 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
 
     localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profilePayload));
     setMessage('Profile preferences saved successfully.');
+  };
+
+  const handleSaveLanguage = (event: React.FormEvent) => {
+    event.preventDefault();
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    setLanguageMessage('Language preference saved successfully.');
   };
 
   return (
@@ -325,6 +377,40 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
           {message && <p className="preferences-message">{message}</p>}
         </div>
 
+        <div className="preferences-panel">
+          <div className="preferences-panel-header">
+            <h2>Preferences</h2>
+            <p>Select your preferred language</p>
+          </div>
+
+          <form onSubmit={handleSaveLanguage}>
+            <div className="language-options-list">
+              {LANGUAGE_OPTIONS.map((option) => (
+                <label key={option.code} className={`language-option ${language === option.code ? 'selected' : ''}`}>
+                  <input
+                    type="radio"
+                    name="language"
+                    value={option.code}
+                    checked={language === option.code}
+                    onChange={() => {
+                      setLanguage(option.code);
+                      setLanguageMessage('');
+                    }}
+                  />
+                  <span className="language-flag">{renderFlagIcon(option.code)}</span>
+                  <span className="language-label">{option.label}</span>
+                </label>
+              ))}
+            </div>
+
+            <button type="submit" className="preferences-save-btn">
+              Save Language
+            </button>
+          </form>
+
+          {languageMessage && <p className="preferences-message">{languageMessage}</p>}
+        </div>
+
         {showPhotoEditor && (
           <div className="photo-editor-modal" role="dialog" aria-modal="true" aria-label="Edit profile photo">
             <div className="photo-editor-card">
@@ -403,25 +489,11 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
 
               {cameraError && <p className="camera-error-message">{cameraError}</p>}
 
-              {cameraError && (
-                <div className="camera-help-actions">
-                  <button type="button" className="camera-help-btn" onClick={handleOpenCamera}>
-                    Retry Camera
-                  </button>
-                  <button type="button" className="camera-help-btn secondary" onClick={handleOpenCameraPicker}>
-                    Open Camera Picker
-                  </button>
-                  <button type="button" className="camera-help-btn secondary" onClick={() => galleryInputRef.current?.click()}>
-                    Use Gallery
-                  </button>
-                </div>
-              )}
-
               <input
                 ref={cameraInputRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
+                capture="user"
                 className="hidden-file-input"
                 onChange={handleProfilePhotoChange}
               />
