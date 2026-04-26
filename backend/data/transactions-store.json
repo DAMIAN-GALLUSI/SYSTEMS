@@ -409,6 +409,16 @@
       "cash_in_hand": 34,
       "description": "{\"lineCard\":\"67890\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":67,\"notes\":\"\",\"saveBatchId\":\"1776354753157\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
       "created_at": "2026-04-16T15:52:33.305Z"
+    },
+    {
+      "id": 42,
+      "user_id": 2,
+      "service_type": "tigo",
+      "amount": 6,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 56666,
+      "description": "{\"lineCard\":\"566\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":867,\"notes\":\"\",\"saveBatchId\":\"1777215490861\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-04-26T14:58:10.954Z"
     }
   ]
 }

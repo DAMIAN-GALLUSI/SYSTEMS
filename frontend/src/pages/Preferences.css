@@ -1,0 +1,73 @@
+.preferences-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f3f8f6 0%, #e7f1ed 100%);
+}
+
+.preferences-content {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.preferences-card {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(13, 40, 32, 0.12);
+  border: 1px solid rgba(13, 40, 32, 0.08);
+  padding: 1.5rem;
+}
+
+.preferences-card h1 {
+  margin: 0;
+  color: #0d2820;
+}
+
+.preferences-subtitle {
+  margin-top: 0.45rem;
+  margin-bottom: 1.25rem;
+  color: #3c4f49;
+}
+
+.preferences-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.preferences-form-group label {
+  font-weight: 600;
+  color: #1f3a31;
+}
+
+.preferences-form-group select {
+  border: 1px solid #c6d6cf;
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+  font-size: 1rem;
+}
+
+.preferences-form-group select:focus {
+  outline: 2px solid rgba(52, 211, 153, 0.35);
+  border-color: #22c55e;
+}
+
+.preferences-save-btn {
+  margin-top: 1.1rem;
+  background-color: #0d704d;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.preferences-save-btn:hover {
+  background-color: #0b5f41;
+}
+
+.preferences-message {
+  margin-top: 0.9rem;
+  color: #0d704d;
+  font-weight: 600;
+}

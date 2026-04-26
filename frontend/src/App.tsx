@@ -10,6 +10,7 @@ import Reports from './pages/Reports';
 import Services from './pages/Services';
 import Benefits from './pages/Benefits';
 import Landing from './pages/Landing';
+import Preferences from './pages/Preferences';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -95,6 +96,12 @@ function App() {
           element={
             isAuthenticated ? <Reports onLogout={handleLogout} /> : <Navigate to="/login" />
           } 
+        />
+        <Route
+          path="/preferences"
+          element={
+            isAuthenticated ? <Preferences onLogout={handleLogout} /> : <Navigate to="/login" />
+          }
         />
       </Routes>
     </Router>

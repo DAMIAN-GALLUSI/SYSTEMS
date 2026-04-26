@@ -43,6 +43,14 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
           <button onClick={onLogout} className="logout-btn">
             Logout
           </button>
+          <Link
+            to="/preferences"
+            className={`settings-btn ${location.pathname === '/preferences' ? 'active' : ''}`}
+            aria-label="Settings"
+            title="Settings"
+          >
+            ⚙
+          </Link>
         </div>
       </div>
     </nav>
