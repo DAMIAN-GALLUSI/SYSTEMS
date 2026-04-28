@@ -2,6 +2,13 @@
   --app-bg: #f5f5f5;
   --app-text: #1b2a25;
   --app-muted: #667874;
+  /* Restored Calm Teal palette used previously */
+  --cm-primary: #0B8F72;
+  --cm-surface: #F6FBF9;
+  --cm-header: #0B6E57;
+  --cm-accent: #10A37F;
+  --cm-text: #16372F;
+  --cm-muted: #6F807A;
   color-scheme: light;
 }
 
@@ -9,6 +16,12 @@ html[data-theme='dark'] {
   --app-bg: #0f1413;
   --app-text: #ecf4f1;
   --app-muted: #b2c0bb;
+  --cm-primary: #0B8F72;
+  --cm-surface: #0b1f18;
+  --cm-header: #0a5c49;
+  --cm-accent: #0fa879;
+  --cm-text: #dff6ee;
+  --cm-muted: #9bb4a9;
   color-scheme: dark;
 }
 

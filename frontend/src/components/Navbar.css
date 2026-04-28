@@ -144,6 +144,9 @@
   border: none;
   text-decoration: none;
   cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.2;
 }
 
 .account-dropdown a:hover,
@@ -157,4 +160,13 @@
   margin: 0.25rem 0.75rem 0.5rem 0.75rem;
   border-radius: 6px;
   padding: 0.45rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dropdown-logout-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
 }

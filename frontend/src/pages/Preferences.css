@@ -6,7 +6,19 @@
 .preferences-content {
   max-width: 520px;
   margin: 0 auto;
-  padding: 3.25rem 2rem 2rem;
+  padding: 2rem 1rem 1.5rem;
+}
+
+/* Profile-specific flat styles */
+.preferences-container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #e9f2ef 0%, #dceae5 100%);
+}
+
+.preferences-content {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 2rem 1rem 1.5rem;
 }
 
 .profile-screen {
@@ -29,7 +41,7 @@
 .preferences-panel-header {
   background: #0b8f72;
   color: #ffffff;
-  padding: 1rem 1.25rem;
+  padding: 0.95rem 1rem;
 }
 
 .preferences-panel-header h2 {
@@ -45,15 +57,15 @@
 
 .preferences-section-group {
   display: grid;
-  gap: 1rem;
-  padding: 1rem 1.2rem 1.2rem;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem 1rem;
 }
 
 .preferences-subsection {
   background: #ffffff;
   border: 1px solid #d6e5df;
   border-radius: 16px;
-  padding: 1rem;
+  padding: 0.85rem;
 }
 
 .preferences-subsection-header {
@@ -73,7 +85,7 @@
 }
 
 .language-options-list {
-  padding: 1rem 1.2rem 0.2rem;
+  padding: 0.85rem 1rem 0.15rem;
   display: grid;
   gap: 0.65rem;
 }
@@ -292,7 +304,7 @@
 .profile-header {
   background: #0b8f72;
   color: #ffffff;
-  padding: 1.2rem 1.25rem;
+  padding: 0.95rem 1rem;
 }
 
 .profile-header-top {
@@ -365,7 +377,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1.2rem 1.2rem 0.9rem;
+  padding: 1rem 1rem 0.75rem;
   background: #ffffff;
   border-bottom: 1px solid #dce7e2;
 }
@@ -413,7 +425,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.42rem;
-  padding: 0.95rem 1.2rem;
+  padding: 0.8rem 1rem;
   border-bottom: 1px solid #e2ece7;
   cursor: text;
 }
@@ -485,8 +497,8 @@
 }
 
 .preferences-save-btn {
-  margin: 1rem 1.2rem 1.2rem;
-  width: calc(100% - 2.4rem);
+  margin: 0.9rem 1rem 1rem;
+  width: calc(100% - 2rem);
   background: linear-gradient(135deg, #0b8f72 0%, #0b6e57 100%);
   color: #ffffff;
   border: none;
@@ -509,7 +521,7 @@
 }
 
 .preferences-message {
-  margin: 0 1.2rem 1.3rem;
+  margin: 0 1rem 1rem;
   color: #0b6e57;
   font-weight: 700;
   font-size: 0.93rem;
@@ -593,7 +605,7 @@ html[data-theme='dark'] .toggle-pill.off {
 }
 
 html[data-theme='dark'] .toggle-pill.on {
-  background: rgba(122, 227, 194, 0.14);
+  background: rgba(122,227,194,0.14);
   color: #7ae3c2;
 }
 
@@ -762,6 +774,14 @@ html[data-theme='dark'] .preferences-message {
 }
 
 @media (max-width: 640px) {
+  .preferences-content {
+    padding: 2rem 1rem 1rem;
+  }
+
+  .profile-screen {
+    border-radius: 14px;
+  }
+}
   .preferences-content {
     padding: 2rem 1rem 1rem;
   }

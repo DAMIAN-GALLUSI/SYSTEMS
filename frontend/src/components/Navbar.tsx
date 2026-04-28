@@ -73,7 +73,13 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
                   className="dropdown-logout"
                   onClick={() => { setOpen(false); onLogout(); }}
                 >
-                  Logout
+                  <svg className="dropdown-logout-icon" viewBox="0 0 16 16" aria-hidden="true">
+                    <path
+                      d="M9.75 1.5a.75.75 0 0 0 0 1.5h2.5A1.25 1.25 0 0 1 13.5 4.25v7.5A1.25 1.25 0 0 1 12.25 13h-2.5a.75.75 0 0 0 0 1.5h2.5A2.75 2.75 0 0 0 15 11.75v-7.5A2.75 2.75 0 0 0 12.25 1.5h-2.5zM7.72 4.22a.75.75 0 0 0-1.06 1.06L8.44 7H2.75a.75.75 0 0 0 0 1.5h5.69L6.66 10.72a.75.75 0 1 0 1.06 1.06l3.5-3.5a.75.75 0 0 0 0-1.06l-3.5-3.5z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  <span>Sign out</span>
                 </button>
               </div>
             )}
