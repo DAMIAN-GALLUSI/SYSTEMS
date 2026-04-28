@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Navbar from '../components/Navbar';
 import './Preferences.css';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ProfileProps {
   onLogout: () => void;
@@ -24,6 +25,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
   const [phone, setPhone] = useState('+255 700 000 000');
   const [accountStatus, setAccountStatus] = useState<AccountStatus>('Active');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const { t } = useLanguage();
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [showPhotoEditor, setShowPhotoEditor] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
@@ -236,15 +238,15 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
           <div className="profile-header">
             <div className="profile-header-top">
               <div>
-                <h1>Profile</h1>
-                <p>Manage your profile details</p>
+                <h1>{t('profile.title')}</h1>
+                <p>{t('profile.manage')}</p>
               </div>
               <span className={`account-status-badge ${accountStatus.toLowerCase()}`}>
-                {accountStatus}
+                {accountStatus === 'Active' ? t('profile.active') : t('profile.suspended')}
               </span>
             </div>
             <button type="button" className="profile-quick-edit-btn" onClick={handleToggleEditProfile}>
-              {isEditingProfile ? 'Disable Edit' : 'Enable Edit'}
+              {isEditingProfile ? t('profile.saveProfile') : t('profile.enableEdit')}
             </button>
           </div>
 
@@ -273,7 +275,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M12 2l2.8 5.7L21 9l-4.5 4.4L17.6 20 12 17l-5.6 3 1.1-6.6L3 9l6.2-1.3L12 2z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
                   </svg>
-                  <span>Account Status</span>
+                  <span>{t('profile.accountStatus')}</span>
                 </label>
                 <select
                   id="accountStatus"
@@ -281,10 +283,10 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   onChange={handleAccountStatusChange}
                   disabled={!isEditingProfile}
                 >
-                  <option value="Active">Active</option>
-                  <option value="Suspended">Suspended</option>
+                  <option value="Active">{t('profile.active')}</option>
+                  <option value="Suspended">{t('profile.suspended')}</option>
                 </select>
-                <small>Your account can be marked active or suspended.</small>
+                <small>{/* explanatory text, not translated yet */}Your account can be marked active or suspended.</small>
               </div>
 
               <div
@@ -296,7 +298,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                     <circle cx="12" cy="8" r="3.6" fill="none" stroke="currentColor" strokeWidth="1.8" />
                     <path d="M5 19c1.6-3 4.2-4.5 7-4.5s5.4 1.5 7 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                   </svg>
-                  <span>Name</span>
+                  <span>{t('profile.name')}</span>
                 </label>
                 <input
                   ref={fullNameInputRef}
@@ -311,7 +313,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   }}
                   placeholder="Enter your full name"
                 />
-                <small>This name is visible in your profile.</small>
+                <small>{/* not translated yet */}This name is visible in your profile.</small>
               </div>
 
               <div
@@ -324,7 +326,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                     <path d="M12 10v6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                     <circle cx="12" cy="7" r="1" fill="currentColor" />
                   </svg>
-                  <span>About</span>
+                  <span>{t('profile.about')}</span>
                 </label>
                 <textarea
                   ref={aboutInputRef}
@@ -339,7 +341,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   }}
                   placeholder="Write a short status"
                 />
-                <small>Tell people something about you.</small>
+                <small>{/* not translated yet */}Tell people something about you.</small>
               </div>
 
               <div
@@ -350,7 +352,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M6.5 3.5h4l1 3-2 1.8a13.3 13.3 0 0 0 6.2 6.2l1.8-2 3 1v4a1.5 1.5 0 0 1-1.5 1.5A16.5 16.5 0 0 1 5 5a1.5 1.5 0 0 1 1.5-1.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span>Phone</span>
+                  <span>{t('profile.phone')}</span>
                 </label>
                 <input
                   ref={phoneInputRef}
@@ -365,12 +367,12 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   }}
                   placeholder="+255 700 000 000"
                 />
-                <small>Phone number linked to your account.</small>
+                <small>{/* not translated yet */}Phone number linked to your account.</small>
               </div>
             </div>
 
             <button type="submit" className="preferences-save-btn" disabled={!isEditingProfile}>
-              Save Profile
+              {t('profile.saveProfile')}
             </button>
           </form>
 

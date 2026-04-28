@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Navbar from '../components/Navbar';
 import './Preferences.css';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface PreferencesProps {
   onLogout: () => void;
@@ -32,11 +33,13 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const [languageMessage, setLanguageMessage] = useState('');
   const languageMenuRef = useRef<HTMLDivElement | null>(null);
+  const { t, setLang } = useLanguage();
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (savedLanguage === 'en' || savedLanguage === 'sw' || savedLanguage === 'fr') {
       setLanguage(savedLanguage);
+      setLang(savedLanguage as any);
     }
 
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -122,7 +125,8 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
     setLanguage(code);
     setIsLanguageMenuOpen(false);
     localStorage.setItem(LANGUAGE_STORAGE_KEY, code);
-    setLanguageMessage('Language updated successfully.');
+    setLang(code as any);
+    setLanguageMessage(t('preferences.saveSuccess'));
   };
 
   return (
@@ -131,14 +135,14 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
       <div className="preferences-content">
         <div className="preferences-panel">
           <div className="preferences-panel-header">
-            <h2>Preferences</h2>
-            <p>Language, theme, and alert controls for faster updates</p>
+            <h2>{t('preferences.title')}</h2>
+            <p>{t('preferences.language')}, {t('preferences.themeMode')}, and alert controls for faster updates</p>
           </div>
 
           <div className="preferences-section-group">
             <div className="preferences-subsection">
               <div className="preferences-subsection-header">
-                <h3>Language</h3>
+                <h3>{t('preferences.language')}</h3>
                 <p>Choose English, Swahili, or French.</p>
               </div>
 

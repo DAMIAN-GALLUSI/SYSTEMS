@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Link, useLocation } from 'react-router-dom';
 import './Navbar.css';
 
@@ -8,6 +9,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
   const location = useLocation();
+  const { t } = useLanguage();
 
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -33,25 +35,27 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
             to="/dashboard" 
             className={location.pathname === '/dashboard' ? 'active' : ''}
           >
-            Home
+            {/** navbar:home */}
+            { /* will be replaced by translation */ }
+            <span id="t-navbar-home">{t('navbar.home')}</span>
           </Link>
           <Link 
             to="/registered-details" 
             className={location.pathname === '/registered-details' ? 'active' : ''}
           >
-            Register Your Details
+            <span id="t-navbar-register">{t('navbar.register')}</span>
           </Link>
           <Link
             to="/daily-balancing"
             className={location.pathname === '/daily-balancing' ? 'active' : ''}
           >
-            Daily Balancing
+            <span id="t-navbar-balancing">{t('navbar.balancing')}</span>
           </Link>
           <Link 
             to="/reports" 
             className={location.pathname === '/reports' ? 'active' : ''}
           >
-            Report
+            <span id="t-navbar-report">{t('navbar.report')}</span>
           </Link>
 
           <div className="account-wrapper" ref={wrapperRef}>
@@ -62,13 +66,13 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
               aria-haspopup="true"
             >
               <span className="account-icon">👤</span>
-              <span className="account-label">Account</span>
+              <span className="account-label" id="t-navbar-account">{t('navbar.account')}</span>
             </button>
             {open && (
               <div className="account-dropdown" role="menu">
-                <Link to="/profile" onClick={() => setOpen(false)}>Profile</Link>
-                <Link to="/settings" onClick={() => setOpen(false)}>Setting</Link>
-                <Link to="/preferences" onClick={() => setOpen(false)}>Preferences</Link>
+                <Link to="/profile" onClick={() => setOpen(false)} id="t-navbar-profile">{t('navbar.profile')}</Link>
+                <Link to="/settings" onClick={() => setOpen(false)} id="t-navbar-settings">{t('navbar.settings')}</Link>
+                <Link to="/preferences" onClick={() => setOpen(false)} id="t-navbar-preferences">{t('navbar.preferences')}</Link>
                 <button
                   className="dropdown-logout"
                   onClick={() => { setOpen(false); onLogout(); }}
@@ -79,7 +83,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
                       fill="currentColor"
                     />
                   </svg>
-                  <span>Sign out</span>
+                  <span id="t-navbar-signout">{t('navbar.signOut')}</span>
                 </button>
               </div>
             )}
