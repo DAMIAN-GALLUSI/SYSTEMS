@@ -1,3 +1,17 @@
+ :root {
+  --app-bg: #f5f5f5;
+  --app-text: #1b2a25;
+  --app-muted: #667874;
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  --app-bg: #0f1413;
+  --app-text: #ecf4f1;
+  --app-muted: #b2c0bb;
+  color-scheme: dark;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -10,7 +24,9 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f5f5;
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 code {

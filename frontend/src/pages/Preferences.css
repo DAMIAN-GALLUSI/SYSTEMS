@@ -43,10 +43,116 @@
   opacity: 0.92;
 }
 
+.preferences-section-group {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem 1.2rem 1.2rem;
+}
+
+.preferences-subsection {
+  background: #ffffff;
+  border: 1px solid #d6e5df;
+  border-radius: 16px;
+  padding: 1rem;
+}
+
+.preferences-subsection-header {
+  margin-bottom: 0.85rem;
+}
+
+.preferences-subsection-header h3 {
+  margin: 0;
+  color: #1b4a3e;
+  font-size: 1rem;
+}
+
+.preferences-subsection-header p {
+  margin: 0.25rem 0 0;
+  color: #5d706a;
+  font-size: 0.88rem;
+}
+
 .language-options-list {
   padding: 1rem 1.2rem 0.2rem;
   display: grid;
   gap: 0.65rem;
+}
+
+.language-dropdown {
+  position: relative;
+}
+
+.language-dropdown-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  border: 1px solid #d6e5df;
+  border-radius: 14px;
+  padding: 0.8rem 0.9rem;
+  background: #f8fcfa;
+  cursor: pointer;
+  color: #1b4a3e;
+  text-align: left;
+}
+
+.language-dropdown-button:hover {
+  background: #f1fbf8;
+}
+
+.language-dropdown-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+}
+
+.language-dropdown-text strong {
+  font-size: 0.98rem;
+}
+
+.language-dropdown-text small {
+  color: #5d706a;
+  font-size: 0.8rem;
+}
+
+.language-dropdown-caret {
+  color: #0b8f72;
+  font-size: 0.85rem;
+}
+
+.language-dropdown-menu {
+  position: absolute;
+  inset: calc(100% + 8px) 0 auto 0;
+  z-index: 30;
+  background: #ffffff;
+  border: 1px solid #d6e5df;
+  border-radius: 14px;
+  box-shadow: 0 14px 30px rgba(7, 45, 35, 0.16);
+  overflow: hidden;
+}
+
+.language-dropdown-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 0.9rem;
+  border: none;
+  border-bottom: 1px solid #edf3f0;
+  background: #ffffff;
+  cursor: pointer;
+  color: #1b4a3e;
+  text-align: left;
+}
+
+.language-dropdown-option:last-child {
+  border-bottom: none;
+}
+
+.language-dropdown-option:hover,
+.language-dropdown-option.selected {
+  background: #f1fbf8;
 }
 
 .language-option {
@@ -91,10 +197,156 @@
   color: #1b4a3e;
 }
 
+.theme-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.theme-mode-card {
+  border: 1px solid #d6e5df;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: #1b4a3e;
+}
+
+.theme-mode-card.selected {
+  border-color: #0b8f72;
+  box-shadow: 0 0 0 1px rgba(11, 143, 114, 0.14);
+  background: #f1fbf8;
+}
+
+.theme-mode-label {
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.theme-mode-note {
+  color: #5d706a;
+  font-size: 0.82rem;
+}
+
+.notification-settings-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.notification-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #d6e5df;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 0.85rem 0.9rem;
+}
+
+.notification-setting-row span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.notification-setting-row strong {
+  color: #1b4a3e;
+  font-size: 0.96rem;
+}
+
+.notification-setting-row small {
+  color: #5d706a;
+  font-size: 0.82rem;
+}
+
+.toggle-pill {
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  min-width: 68px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.toggle-pill.on {
+  background: rgba(11, 143, 114, 0.16);
+  color: #0b8f72;
+}
+
+.toggle-pill.off {
+  background: #eef4f2;
+  color: #5d706a;
+}
+
+.notification-helper-text {
+  margin: 0.75rem 0 0;
+  color: #50655e;
+  font-size: 0.86rem;
+}
+
 .profile-header {
   background: #0b8f72;
   color: #ffffff;
   padding: 1.2rem 1.25rem;
+}
+
+.profile-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.account-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.account-status-badge.active {
+  background: rgba(52, 211, 153, 0.22);
+  border-color: rgba(239, 253, 245, 0.45);
+}
+
+.account-status-badge.suspended {
+  background: rgba(239, 68, 68, 0.24);
+  border-color: rgba(255, 220, 220, 0.35);
+}
+
+.profile-quick-edit-btn {
+  margin-top: 0.9rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-weight: 700;
+  color: #0b8f72;
+  background: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(5, 79, 62, 0.16);
+}
+
+.profile-quick-edit-btn:hover {
+  filter: brightness(0.97);
+}
+
+.profile-quick-edit-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 2px;
 }
 
 .profile-header h1 {
@@ -202,6 +454,25 @@
   resize: vertical;
 }
 
+.profile-field-row input[readonly],
+.profile-field-row textarea[readonly],
+.profile-field-row select:disabled {
+  color: #6f807a;
+  cursor: default;
+  -webkit-text-fill-color: #6f807a;
+  opacity: 1;
+}
+
+.profile-field-row:has(input[readonly]),
+.profile-field-row:has(textarea[readonly]),
+.profile-field-row:has(select:disabled) {
+  cursor: default;
+}
+
+.profile-field-row select {
+  padding-right: 1.2rem;
+}
+
 .profile-field-row input:focus,
 .profile-field-row select:focus,
 .profile-field-row textarea:focus {
@@ -231,11 +502,103 @@
   filter: brightness(0.97);
 }
 
+.preferences-save-btn:disabled {
+  background: #9fb7b1;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
 .preferences-message {
   margin: 0 1.2rem 1.3rem;
   color: #0b6e57;
   font-weight: 700;
   font-size: 0.93rem;
+}
+
+html[data-theme='dark'] .preferences-container {
+  background: linear-gradient(180deg, #101716 0%, #0b1110 100%);
+}
+
+html[data-theme='dark'] .profile-screen,
+html[data-theme='dark'] .preferences-panel,
+html[data-theme='dark'] .preferences-subsection,
+html[data-theme='dark'] .language-dropdown-button,
+html[data-theme='dark'] .language-dropdown-menu,
+html[data-theme='dark'] .language-dropdown-option,
+html[data-theme='dark'] .theme-mode-card,
+html[data-theme='dark'] .notification-setting-row,
+html[data-theme='dark'] .photo-editor-card,
+html[data-theme='dark'] .camera-live-panel,
+html[data-theme='dark'] .photo-action-btn {
+  background: #101918;
+  border-color: rgba(182, 205, 198, 0.15);
+}
+
+html[data-theme='dark'] .profile-avatar-wrap,
+html[data-theme='dark'] .profile-card-list,
+html[data-theme='dark'] .photo-action-btn,
+html[data-theme='dark'] .camera-live-panel {
+  background: #0d1514;
+}
+
+html[data-theme='dark'] .profile-field-row:hover,
+html[data-theme='dark'] .language-dropdown-button:hover,
+html[data-theme='dark'] .language-dropdown-option:hover,
+html[data-theme='dark'] .language-dropdown-option.selected,
+html[data-theme='dark'] .theme-mode-card.selected {
+  background: #16211f;
+}
+
+html[data-theme='dark'] .profile-header,
+html[data-theme='dark'] .preferences-panel-header {
+  background: linear-gradient(135deg, #0d7660 0%, #084f42 100%);
+}
+
+html[data-theme='dark'] .profile-header p,
+html[data-theme='dark'] .preferences-panel-header p,
+html[data-theme='dark'] .preferences-subsection-header p,
+html[data-theme='dark'] .theme-mode-note,
+html[data-theme='dark'] .notification-setting-row small,
+html[data-theme='dark'] .notification-helper-text,
+html[data-theme='dark'] .profile-avatar-caption,
+html[data-theme='dark'] .profile-field-row small,
+html[data-theme='dark'] .language-dropdown-text small {
+  color: #a8bab5;
+}
+
+html[data-theme='dark'] .profile-header h1,
+html[data-theme='dark'] .preferences-panel-header h2,
+html[data-theme='dark'] .preferences-subsection-header h3,
+html[data-theme='dark'] .notification-setting-row strong,
+html[data-theme='dark'] .theme-mode-label,
+html[data-theme='dark'] .language-label,
+html[data-theme='dark'] .language-dropdown-button,
+html[data-theme='dark'] .language-dropdown-option,
+html[data-theme='dark'] .profile-field-row label,
+html[data-theme='dark'] .profile-field-row input,
+html[data-theme='dark'] .profile-field-row textarea,
+html[data-theme='dark'] .profile-field-row select {
+  color: #ecf4f1;
+}
+
+html[data-theme='dark'] .language-dropdown-caret,
+html[data-theme='dark'] .profile-edit-trigger,
+html[data-theme='dark'] .profile-quick-edit-btn {
+  color: #7ae3c2;
+}
+
+html[data-theme='dark'] .toggle-pill.off {
+  background: #1a2422;
+  color: #c2d0cb;
+}
+
+html[data-theme='dark'] .toggle-pill.on {
+  background: rgba(122, 227, 194, 0.14);
+  color: #7ae3c2;
+}
+
+html[data-theme='dark'] .preferences-message {
+  color: #9be2c8;
 }
 
 .photo-editor-modal {

@@ -10,7 +10,8 @@ import Reports from './pages/Reports';
 import Services from './pages/Services';
 import Benefits from './pages/Benefits';
 import Landing from './pages/Landing';
-import Preferences from './pages/Preferences.tsx';
+import Preferences from './pages/Preferences';
+import Profile from './pages/Profile';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -101,6 +102,18 @@ function App() {
           path="/preferences"
           element={
             isAuthenticated ? <Preferences onLogout={handleLogout} /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            isAuthenticated ? <Profile onLogout={handleLogout} /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            isAuthenticated ? <Navigate to="/preferences" replace /> : <Navigate to="/login" />
           }
         />
       </Routes>
