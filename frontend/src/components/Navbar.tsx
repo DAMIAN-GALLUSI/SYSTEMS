@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Navbar.css';
 
@@ -8,6 +8,19 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
   const location = useLocation();
+
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <nav className="navbar">
@@ -40,17 +53,31 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
           >
             Report
           </Link>
-          <button onClick={onLogout} className="logout-btn">
-            Logout
-          </button>
-          <Link
-            to="/preferences"
-            className={`settings-btn ${location.pathname === '/preferences' ? 'active' : ''}`}
-            aria-label="Settings"
-            title="Settings"
-          >
-            ⚙
-          </Link>
+
+          <div className="account-wrapper" ref={wrapperRef}>
+            <button
+              className={`account-btn ${open ? 'open' : ''}`}
+              onClick={() => setOpen(v => !v)}
+              aria-expanded={open}
+              aria-haspopup="true"
+            >
+              <span className="account-icon">👤</span>
+              <span className="account-label">Account</span>
+            </button>
+            {open && (
+              <div className="account-dropdown" role="menu">
+                <Link to="/profile" onClick={() => setOpen(false)}>Profile</Link>
+                <Link to="/settings" onClick={() => setOpen(false)}>Setting</Link>
+                <Link to="/preferences" onClick={() => setOpen(false)}>Preferences</Link>
+                <button
+                  className="dropdown-logout"
+                  onClick={() => { setOpen(false); onLogout(); }}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </nav>
