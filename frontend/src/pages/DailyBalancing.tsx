@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import { transactionAPI } from '../services/api';
 import { ServiceType } from '../types';
 import { SERVICES } from '../utils/constants';
+import { useLanguage } from '../contexts/LanguageContext';
 import './TransactionEntry.css';
 
 interface DailyBalancingProps {
@@ -78,6 +79,7 @@ const getSavedCirculationAmount = (saved: SavedDailyBalancing) => {
 };
 
 const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
+  const { t } = useLanguage();
   const [lineEntries, setLineEntries] = useState<LineAmountEntry[]>([]);
   const [cashInHand, setCashInHand] = useState('');
   const [dailyConsumption, setDailyConsumption] = useState('');
@@ -194,7 +196,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
     setDailyConsumption(todaySavedEntry.dailyConsumption);
     setNotes(todaySavedEntry.notes);
     setShowSavedDailyBalancing(false);
-    setMessage({ type: 'success', text: 'Editing today\'s saved details. Save again to update today only.' });
+    setMessage({ type: 'success', text: t('dailyBalancing.editTodaySuccess') });
   };
 
   const handleEditLine = (index: number, field: keyof LineAmountEntry, value: string) => {
@@ -225,7 +227,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
     // Validate that we have at least one line with service name and line card
     const hasInvalidLine = lineEntries.some((entry) => !entry.serviceName.trim() || !entry.lineCard.trim());
     if (hasInvalidLine) {
-      setMessage({ type: 'error', text: 'Please fill in service name and line/card for all entries.' });
+      setMessage({ type: 'error', text: t('dailyBalancing.fillError') });
       return;
     }
 
@@ -235,19 +237,19 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
     });
 
     if (hasInvalidAmount) {
-      setMessage({ type: 'error', text: 'Enter a valid non-negative amount for every line.' });
+      setMessage({ type: 'error', text: t('dailyBalancing.amountError') });
       return;
     }
 
     const parsedCash = Number(cashInHand);
     if (Number.isNaN(parsedCash) || parsedCash < 0) {
-      setMessage({ type: 'error', text: 'Enter a valid non-negative cash amount.' });
+      setMessage({ type: 'error', text: t('dailyBalancing.cashError') });
       return;
     }
 
     const parsedConsumption = Number(dailyConsumption);
     if (Number.isNaN(parsedConsumption) || parsedConsumption < 0) {
-      setMessage({ type: 'error', text: 'Enter a valid non-negative daily uses amount.' });
+      setMessage({ type: 'error', text: t('dailyBalancing.consumptionError') });
       return;
     }
 
@@ -309,7 +311,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
       setSavedDailyBalancing(savedPayload);
       setShowSavedDailyBalancing(true);
 
-      setMessage({ type: 'success', text: 'Daily balancing saved successfully.' });
+      setMessage({ type: 'success', text: t('dailyBalancing.saveSuccess') });
       setLineEntries((current) => current.map((entry) => ({ ...entry, amount: '' })));
       setCashInHand('');
       setDailyConsumption('');
@@ -317,7 +319,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
     } catch (error: any) {
       setMessage({
         type: 'error',
-        text: error.response?.data?.message || 'Failed to save daily balancing details',
+        text: error.response?.data?.message || t('dailyBalancing.saveFailed'),
       });
     } finally {
       setLoading(false);
@@ -329,22 +331,22 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
       <Navbar onLogout={onLogout} />
       <div className="transaction-content">
         <div className="transaction-card">
-          <h1>Daily Balancing</h1>
-          <p className="subtitle">Manage your registered lines/cards and enter daily balancing details.</p>
+          <h1>{t('dailyBalancing.title')}</h1>
+          <p className="subtitle">{t('dailyBalancing.subtitle')}</p>
 
           {message.text && <div className={`message ${message.type}`}>{message.text}</div>}
 
           <form onSubmit={handleSubmit}>
-            <div className="section-header">Manage Your Registered Lines/Cards</div>
-            <p className="subtitle">Edit your services or add new ones. Changes are saved with today's balancing.</p>
+            <div className="section-header">{t('dailyBalancing.sectionHeader')}</div>
+            <p className="subtitle">{t('dailyBalancing.sectionSubtitle')}</p>
 
             {lineEntries.length > 0 && (
               <div className="line-table">
                 <div className="line-table-header">
-                  <span>Service</span>
-                  <span>Line/Card</span>
-                  <span>Amount (TZS)</span>
-                  <span>Action</span>
+                  <span>{t('dailyBalancing.service')}</span>
+                  <span>{t('dailyBalancing.lineCard')}</span>
+                  <span>{t('dailyBalancing.amount')}</span>
+                  <span>{t('dailyBalancing.action')}</span>
                 </div>
                 {lineEntries.map((entry, index) => {
                   return (
@@ -362,7 +364,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                         type="text"
                         value={entry.lineCard}
                         onChange={(e) => handleEditLine(index, 'lineCard', e.target.value)}
-                        placeholder="Line/Card number"
+                        placeholder={t('dailyBalancing.linePlaceholder')}
                         required
                       />
                       <input
@@ -370,7 +372,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                         type="number"
                         min="0"
                         step="0.01"
-                        placeholder="0"
+                        placeholder={t('dailyBalancing.amountPlaceholder')}
                         value={entry.amount}
                         onChange={(e) => handleAmountChange(index, e.target.value)}
                         required
@@ -381,7 +383,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                         onClick={() => handleRemoveLine(index)}
                         disabled={lineEntries.length === 1}
                       >
-                        Remove
+                        {t('dailyBalancing.remove')}
                       </button>
                     </div>
                   );
@@ -391,7 +393,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="cashInHand">Cash in hand (TZS)</label>
+                  <label htmlFor="cashInHand">{t('dailyBalancing.cashInHand')}</label>
                   <input
                     id="cashInHand"
                     type="number"
@@ -403,7 +405,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="dailyConsumption">Use of the day (TZS)</label>
+                  <label htmlFor="dailyConsumption">{t('dailyBalancing.useOfDay')}</label>
                   <input
                     id="dailyConsumption"
                     type="number"
@@ -417,25 +419,25 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="notes">Notes (optional)</label>
+                <label htmlFor="notes">{t('dailyBalancing.notes')}</label>
                 <textarea
                   id="notes"
                   rows={3}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Any extra details for this daily balancing entry"
+                  placeholder={t('dailyBalancing.notesPlaceholder')}
                 />
               </div>
 
-              <div className="section-header">The current amount of money in circulation within the business: {new Intl.NumberFormat('en-TZ').format(totalAvailableMoney)} TZS</div>
+              <div className="section-header">{t('dailyBalancing.circulation')} {new Intl.NumberFormat('en-TZ').format(totalAvailableMoney)} TZS</div>
 
               <button type="submit" disabled={loading} className="btn-submit">
-                {loading ? 'Saving...' : 'Save Daily Balancing'}
+                {loading ? t('dailyBalancing.saving') : t('dailyBalancing.saveBalancing')}
               </button>
 
               {todaySavedEntry && (
                 <button type="button" className="line-add-btn" onClick={handleEditTodaySaved}>
-                  Edit Today's Saved Details (Same Day Only)
+                  {t('dailyBalancing.editToday')}
                 </button>
               )}
 
@@ -446,33 +448,33 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                     className="line-add-btn"
                     onClick={() => setShowSavedDailyBalancing((current) => !current)}
                   >
-                    {showSavedDailyBalancing ? 'Hide Saved Daily Balancing' : 'Open Saved Daily Balancing'}
+                    {showSavedDailyBalancing ? t('dailyBalancing.hideSaved') : t('dailyBalancing.openSaved')}
                   </button>
 
                   {showSavedDailyBalancing && (
                     <div className="saved-report-panel" style={{ marginTop: '1rem' }}>
-                      <div className="section-header">Saved Daily Balancing</div>
-                      <p><strong>Saved at:</strong> {new Date(savedDailyBalancing.savedAt).toLocaleString('en-TZ')}</p>
+                      <div className="section-header">{t('dailyBalancing.savedTitle')}</div>
+                      <p><strong>{t('dailyBalancing.savedAt')}</strong> {new Date(savedDailyBalancing.savedAt).toLocaleString('en-TZ')}</p>
                       {!isTodayEntry(savedDailyBalancing) && (
-                        <p><strong>Note:</strong> This is a past-day record and is locked from editing.</p>
+                        <p><strong>{t('dailyBalancing.note')}</strong> {t('dailyBalancing.locked')}</p>
                       )}
                       {isTodayEntry(savedDailyBalancing) && (
                         <button type="button" className="line-add-btn" onClick={handleEditTodaySaved}>
-                          Edit This Saved Entry
+                          {t('dailyBalancing.editSaved')}
                         </button>
                       )}
-                      <p><strong>Cash in hand:</strong> {new Intl.NumberFormat('en-TZ').format(Number(savedDailyBalancing.cashInHand))} TZS</p>
-                      <p><strong>Use of the day:</strong> {new Intl.NumberFormat('en-TZ').format(Number(savedDailyBalancing.dailyConsumption))} TZS</p>
+                      <p><strong>{t('dailyBalancing.savedCash')}</strong> {new Intl.NumberFormat('en-TZ').format(Number(savedDailyBalancing.cashInHand))} TZS</p>
+                      <p><strong>{t('dailyBalancing.savedUseOfDay')}</strong> {new Intl.NumberFormat('en-TZ').format(Number(savedDailyBalancing.dailyConsumption))} TZS</p>
                       <p>
-                        <strong>The current amount of money in circulation within the business:</strong>{' '}
+                        <strong>{t('dailyBalancing.circulation')}</strong>{' '}
                         {new Intl.NumberFormat('en-TZ').format(getSavedCirculationAmount(savedDailyBalancing))} TZS
                       </p>
-                      {savedDailyBalancing.notes && <p><strong>Notes:</strong> {savedDailyBalancing.notes}</p>}
+                      {savedDailyBalancing.notes && <p><strong>{t('dailyBalancing.notes')}</strong> {savedDailyBalancing.notes}</p>}
                       <div className="line-table saved-lines-table" style={{ marginTop: '1rem' }}>
                         <div className="line-table-header saved-lines-header">
-                          <span>Service</span>
-                          <span>Line/Card</span>
-                          <span>Amount (TZS)</span>
+                          <span>{t('dailyBalancing.service')}</span>
+                          <span>{t('dailyBalancing.lineCard')}</span>
+                          <span>{t('dailyBalancing.amount')}</span>
                         </div>
                         {savedDailyBalancing.entries.map((entry, index) => (
                           <div className="line-row saved-lines-row" key={`${entry.serviceType}-${entry.lineCard}-${index}`}>
@@ -484,7 +486,7 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
                       </div>
                       {savedDailyBalancingHistory.length > 1 && (
                         <p style={{ marginTop: '1rem' }}>
-                          <strong>Saved days:</strong> {savedDailyBalancingHistory.length} (older days remain locked)
+                          <strong>{t('dailyBalancing.savedDays')}</strong> {savedDailyBalancingHistory.length} ({t('dailyBalancing.olderLocked')})
                         </p>
                       )}
                     </div>

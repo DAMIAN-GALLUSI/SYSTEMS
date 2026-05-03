@@ -5,6 +5,7 @@ import ServiceCard from '../components/ServiceCard';
 import { dashboardAPI } from '../services/api';
 import { SERVICES } from '../utils/constants';
 import { DashboardData, ProfitLossData } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Dashboard.css';
 
 interface DashboardProps {
@@ -12,6 +13,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
+  const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [profitLossData, setProfitLossData] = useState<ProfitLossData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,10 +62,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       <Navbar onLogout={onLogout} />
       <div className="dashboard-content">
         <div className="dashboard-header">
-          <h1>Dashboard</h1>
+          <h1>{t('dashboard.title')}</h1>
           <div className="dashboard-summary">
             <div className="summary-card">
-              <h3>Total Money in Circulation</h3>
+              <h3>{t('dashboard.totalCash')}</h3>
               <p className="summary-amount">
                 {new Intl.NumberFormat('en-TZ', {
                   style: 'currency',
@@ -73,7 +75,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
               </p>
             </div>
             <div className="summary-card">
-              <h3>Today vs Previous Day</h3>
+              <h3>{t('dashboard.todayVsPrevious')}</h3>
               <p className={`summary-amount ${netProfit >= 0 ? 'profit' : 'loss'}`}>
                 {new Intl.NumberFormat('en-TZ', {
                   style: 'currency',
@@ -82,7 +84,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 }).format(netProfit)}
               </p>
               <p className="summary-note">
-                {netProfit >= 0 ? 'Profit compared to previous day' : 'Loss compared to previous day'}
+                {netProfit >= 0 ? t('dashboard.profitNote') : t('dashboard.lossNote')}
               </p>
             </div>
           </div>
@@ -90,19 +92,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
         <div className="chart-section">
           <div className="chart-header">
-            <h2>Daily Profit/Loss Trend</h2>
+            <h2>{t('dashboard.trendTitle')}</h2>
             <select 
               value={days} 
               onChange={(e) => setDays(Number(e.target.value))}
               className="time-filter"
             >
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-              <option value={90}>Last 90 days</option>
+              <option value={7}>{t('dashboard.last7')}</option>
+              <option value={30}>{t('dashboard.last30')}</option>
+              <option value={90}>{t('dashboard.last90')}</option>
             </select>
           </div>
           {loading ? (
-            <div className="loading">Loading chart data...</div>
+            <div className="loading">{t('dashboard.loading')}</div>
           ) : (
             <ResponsiveContainer width="100%" height={400}>
               <LineChart data={profitLossData}>
@@ -120,7 +122,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                       currency: 'TZS',
                       minimumFractionDigits: 0
                     }).format(value),
-                    'Daily Change'
+                    t('dashboard.dailyChange')
                   ]}
                   labelFormatter={(label) => new Date(label).toLocaleDateString('en-TZ')}
                 />
@@ -130,7 +132,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                   dataKey="profit" 
                   stroke="#0066CC" 
                   strokeWidth={2}
-                  name="Profit/Loss (vs previous day)"
+                  name={t('dashboard.profitLossSeries')}
                   dot={{ fill: '#0066CC', r: 4 }}
                 />
               </LineChart>
@@ -139,7 +141,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         </div>
 
         <div className="services-section">
-          <h2>Registered Lines/Cards</h2>
+          <h2>{t('dashboard.registeredLines')}</h2>
           <div className="services-grid">
             {dashboardData?.services.length ? (
               dashboardData.services.map((entry, index) => {
@@ -156,7 +158,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 );
               })
             ) : (
-              <div className="empty-services">No registered line/cards found yet. Save daily balancing details to populate this section.</div>
+              <div className="empty-services">{t('dashboard.emptyServices')}</div>
             )}
           </div>
         </div>

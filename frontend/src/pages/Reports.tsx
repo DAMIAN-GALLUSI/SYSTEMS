@@ -5,6 +5,7 @@ import { Transaction } from '../types';
 import { formatCurrency, formatDate, getServiceInfo } from '../utils/constants';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Reports.css';
 
 interface ReportsProps {
@@ -83,11 +84,11 @@ interface PeriodConfig {
   description: string;
 }
 
-const PERIODS: PeriodConfig[] = [
-  { key: 'day', title: 'Daily Report Area', description: 'Summary and transactions for today' },
-  { key: 'week', title: 'Weekly Report Area', description: 'Summary and transactions for the last 7 days' },
-  { key: 'month', title: 'Monthly Report Area', description: 'Summary and transactions for this month' },
-  { key: 'year', title: 'Yearly Report Area', description: 'Summary and transactions for this year' },
+const buildPeriods = (t: (path: string) => string): PeriodConfig[] => [
+  { key: 'day', title: t('reports.dailyArea'), description: t('reports.dailySummary') },
+  { key: 'week', title: t('reports.weeklyArea'), description: t('reports.weeklySummary') },
+  { key: 'month', title: t('reports.monthlyArea'), description: t('reports.monthlySummary') },
+  { key: 'year', title: t('reports.yearlyArea'), description: t('reports.yearlySummary') },
 ];
 
 const normalizeTransaction = (transaction: any): Transaction => ({
@@ -410,6 +411,8 @@ const getDayRangeFromInput = (dateValue: string) => {
 };
 
 const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
+  const { t } = useLanguage();
+  const periods = buildPeriods(t);
   const [reportsByPeriod, setReportsByPeriod] = useState<Record<PeriodKey, ReportData | null>>({
     day: null,
     week: null,
@@ -451,7 +454,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
 
     try {
       const periodEntries = await Promise.all(
-        PERIODS.filter((period) => period.key !== 'day').map(async (period) => {
+        periods.filter((period) => period.key !== 'day').map(async (period) => {
           const range = getPeriodRange(period.key);
           const params: any = {
             startDate: range.startDate,
@@ -481,7 +484,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
       setReportsByPeriod(nextState);
     } catch (error) {
       console.error('Failed to generate report:', error);
-      setError('Failed to generate reports. Please try again.');
+      setError(t('reports.generateError'));
     } finally {
       setLoading(false);
     }
@@ -491,7 +494,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
     const targetDate = dateValue || selectedDailyDate;
     const range = getDayRangeFromInput(targetDate);
     if (!range) {
-      setError('Please choose a valid date.');
+      setError(t('reports.invalidDate'));
       return;
     }
 
@@ -588,21 +591,21 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
       <Navbar onLogout={onLogout} />
       <div className="reports-content">
         <div className="reports-header">
-          <h1>Business Reports</h1>
-          <p>Daily, weekly, monthly, and yearly report areas with PDF download buttons for sharing and storage</p>
+          <h1>{t('reports.businessTitle')}</h1>
+          <p>{t('reports.reportAreasCopy')}</p>
         </div>
 
         <div className="filters-section">
           <div className="filters-grid">
             <div className="form-group">
-              <label htmlFor="serviceType">Service Filter (Optional)</label>
+              <label htmlFor="serviceType">{t('reports.serviceFilter')}</label>
               <select
                 id="serviceType"
                 name="serviceType"
                 value={filters.serviceType}
                 onChange={handleFilterChange}
               >
-                <option value="">All Services</option>
+                <option value="">{t('reports.allServices')}</option>
                 <option value="vodacom">Vodacom</option>
                 <option value="airtel">Airtel</option>
                 <option value="tigo">Tigo</option>
@@ -616,7 +619,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
           </div>
           <div className="filter-actions">
             <button onClick={generateReports} disabled={loading} className="btn-generate">
-              {loading ? 'Refreshing...' : 'Refresh Reports'}
+              {loading ? t('reports.loading') : t('reports.refreshReports')}
             </button>
           </div>
         </div>
@@ -624,36 +627,36 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
         {error && <div className="report-error">{error}</div>}
 
         <div className="report-sections-nav">
-          <p className="nav-label">Jump to Report:</p>
+          <p className="nav-label">{t('reports.jumpToReport')}</p>
           <div className="nav-buttons">
             <button
               onClick={() => toggleSection('daily-balance')}
               className={`nav-btn ${expandedSections['daily-balance'] ? 'active' : ''}`}
             >
-              {expandedSections['daily-balance'] ? '▼' : '▶'} Daily Report
+              {expandedSections['daily-balance'] ? '▼' : '▶'} {t('reports.dailyReport')}
             </button>
             <button
               onClick={() => toggleSection('weekly-balance')}
               className={`nav-btn ${expandedSections['weekly-balance'] ? 'active' : ''}`}
             >
-              {expandedSections['weekly-balance'] ? '▼' : '▶'} Weekly Report
+              {expandedSections['weekly-balance'] ? '▼' : '▶'} {t('reports.weeklyReport')}
             </button>
             <button
               onClick={() => toggleSection('monthly-balance')}
               className={`nav-btn ${expandedSections['monthly-balance'] ? 'active' : ''}`}
             >
-              {expandedSections['monthly-balance'] ? '▼' : '▶'} Monthly Report
+              {expandedSections['monthly-balance'] ? '▼' : '▶'} {t('reports.monthlyReport')}
             </button>
             <button
               onClick={() => toggleSection('yearly-summary')}
               className={`nav-btn ${expandedSections['yearly-summary'] ? 'active' : ''}`}
             >
-              {expandedSections['yearly-summary'] ? '▼' : '▶'} Yearly Report
+              {expandedSections['yearly-summary'] ? '▼' : '▶'} {t('reports.yearlyReport')}
             </button>
           </div>
         </div>
 
-        {PERIODS.map((period) => {
+        {periods.map((period) => {
           const reportData = reportsByPeriod[period.key];
           const dailyBalancingRows = reportData ? getLatestDailyBalancingRows(getDailyBalancingRows(reportData.transactions)) : [];
           const weeklyBalancingGroups =
@@ -680,14 +683,14 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                   disabled={!reportData}
                   className="btn-download"
                 >
-                  Download {period.title} PDF
+                  {t('reports.downloadPrefix')} {period.title} {t('reports.downloadSuffix')}
                 </button>
               </div>
 
               {period.key === 'day' && (
                 <div className="daily-controls">
                   <div className="form-group daily-date-group">
-                    <label htmlFor="selectedDailyDate">Choose Day</label>
+                    <label htmlFor="selectedDailyDate">{t('reports.chooseDay')}</label>
                     <input
                       id="selectedDailyDate"
                       type="date"
@@ -707,7 +710,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                     onClick={() => loadSelectedDailyReport()}
                     disabled={dailyLoading}
                   >
-                    {dailyLoading ? 'Loading Day Details...' : 'View Selected Day Details'}
+                    {dailyLoading ? t('reports.loadingDayDetails') : t('reports.viewSelectedDayDetails')}
                   </button>
                 </div>
               )}
@@ -716,7 +719,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                 <>
                   {period.key === 'day' && (
                     <div className="daily-selected-note">
-                      Showing saved details for: <strong>{loadedDailyDate}</strong>
+                      {t('reports.showingSavedDetails')} <strong>{loadedDailyDate}</strong>
                     </div>
                   )}
 
@@ -727,29 +730,29 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                         className="collapse-toggle-btn"
                         onClick={() => toggleSection('daily-balance')}
                       >
-                        {expandedSections['daily-balance'] ? '▼' : '▶'} Saved From Daily Balancing
+                        {expandedSections['daily-balance'] ? '▼' : '▶'} {t('reports.savedFromDailyBalancing')}
                       </button>
                       {expandedSections['daily-balance'] && (
                       <div className="collapsible-content">
                       <p className="daily-circulation-line">
-                        <strong>The current amount of money in circulation within the business:</strong>{' '}
+                        <strong>{t('reports.currentCirculation')}</strong>{' '}
                         {formatCurrency(getDailyCirculationAmount(dailyBalancingRows))}
                       </p>
                       <p className="daily-notes-line">
-                        <strong>Notes:</strong> {getDisplayNotes(dailyBalancingRows)}
+                        <strong>{t('reports.notesLabel')}</strong> {getDisplayNotes(dailyBalancingRows)}
                       </p>
                       <div className="table-container">
                         <table className="transactions-table">
                           <thead>
                             <tr>
-                              <th>Date</th>
-                              <th>Service</th>
-                              <th>Line/Card</th>
-                              <th>Amount</th>
-                              <th>Cash in Hand</th>
-                              <th>Use of the Day</th>
-                              <th>Employee</th>
-                              <th>Notes</th>
+                              <th>{t('reports.date')}</th>
+                              <th>{t('reports.service')}</th>
+                              <th>{t('reports.lineCard')}</th>
+                              <th>{t('reports.amount')}</th>
+                              <th>{t('reports.cashInHand')}</th>
+                              <th>{t('reports.useOfDay')}</th>
+                              <th>{t('reports.employee')}</th>
+                              <th>{t('reports.notes')}</th>
                             </tr>
                           </thead>
                           <tbody>

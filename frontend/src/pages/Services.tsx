@@ -1,20 +1,20 @@
 import React from 'react';
 import PublicTopNav from '../components/PublicTopNav';
 import { SERVICES } from '../utils/constants';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Auth.css';
 import './PublicInfo.css';
 
 const Services: React.FC = () => {
+  const { t } = useLanguage();
+
   return (
     <div className="auth-page">
       <PublicTopNav active="services" />
       <main className="public-info-wrap">
         <section className="public-info-hero">
-          <h1>Services We Support</h1>
-          <p>
-            The system supports all primary mobile money lines and Lipa Namba channels,
-            helping your team manage transactions and balancing from one workspace.
-          </p>
+          <h1>{t('public.services.title')}</h1>
+          <p>{t('public.services.description')}</p>
         </section>
 
         <section className="public-card-grid">
@@ -22,7 +22,7 @@ const Services: React.FC = () => {
             <article key={service.id} className="public-info-card">
               <div className="service-dot" style={{ background: service.color }} aria-hidden="true" />
               <h3>{service.name}</h3>
-              <p>Available for daily balancing, transaction tracking, and reporting.</p>
+              <p>{t('public.services.cardDescription')}</p>
             </article>
           ))}
         </section>

@@ -1,6 +1,9 @@
 import React from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const PublicBottomNav: React.FC = () => {
+  const { t } = useLanguage();
+
   return (
     <footer className="public-bottom-nav">
       <div className="public-bottom-inner">
@@ -12,7 +15,7 @@ const PublicBottomNav: React.FC = () => {
                 <path d="M4 19h16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
             </span>
-            <p>Report sahihi</p>
+            <p>{t('public.bottom.report')}</p>
           </article>
 
           <article className="bottom-feature-item">
@@ -23,7 +26,7 @@ const PublicBottomNav: React.FC = () => {
                 <path d="M9.2 9.4h5.6M10.1 14.2h3.8" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
               </svg>
             </span>
-            <p>Faida moja kwa moja</p>
+            <p>{t('public.bottom.profit')}</p>
           </article>
 
           <article className="bottom-feature-item">
@@ -32,7 +35,7 @@ const PublicBottomNav: React.FC = () => {
                 <path d="M13 2L5 14h6l-1 8 9-13h-6z" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
               </svg>
             </span>
-            <p>Haraka na rahisi</p>
+            <p>{t('public.bottom.fast')}</p>
           </article>
 
           <article className="bottom-feature-item">
@@ -42,7 +45,7 @@ const PublicBottomNav: React.FC = () => {
                 <path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </span>
-            <p>Data salama</p>
+            <p>{t('public.bottom.secure')}</p>
           </article>
         </div>
       </div>

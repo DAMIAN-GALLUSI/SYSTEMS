@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import PublicAuthLayout from '../components/PublicAuthLayout';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Auth.css';
 
 interface LoginProps {
@@ -9,6 +10,7 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +29,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       onLogin(token, user.role);
       navigate('/daily-balancing');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || t('public.auth.loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -37,29 +39,29 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     <PublicAuthLayout
       mode="login"
       hideShowcase
-      title="Agent Login"
-      subtitle="Access your dashboard, balancing records, and reports."
+      title={t('public.auth.loginTitle')}
+      subtitle={t('public.auth.loginSubtitle')}
       footer={
         <p className="auth-footer">
-          Don't have an account? <Link to="/register">Register here</Link>
+          {t('public.auth.noAccount')} <Link to="/register">{t('public.auth.registerHere')}</Link>
         </p>
       }
     >
       {error && <div className="error-message">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">{t('public.auth.email')}</label>
           <input
             type="email"
             id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="Enter your email"
+            placeholder={t('public.auth.enterEmail')}
           />
         </div>
         <div className="form-group">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">{t('public.auth.password')}</label>
           <div className="password-input-wrapper">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -67,13 +69,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="Enter your password"
+              placeholder={t('public.auth.enterPassword')}
             />
             <button
               type="button"
               className="password-toggle"
               onClick={() => setShowPassword((prev) => !prev)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? t('public.auth.hidePassword') : t('public.auth.showPassword')}
             >
               {showPassword ? (
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -91,7 +93,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
         </div>
         <button type="submit" disabled={loading} className="btn-primary">
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? t('public.auth.loggingIn') : t('public.auth.login')}
         </button>
       </form>
     </PublicAuthLayout>

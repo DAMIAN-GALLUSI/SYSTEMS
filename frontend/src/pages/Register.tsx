@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import PublicAuthLayout from '../components/PublicAuthLayout';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Auth.css';
 
 interface RegisterProps {
@@ -9,6 +10,7 @@ interface RegisterProps {
 }
 
 const Register: React.FC<RegisterProps> = ({ onRegister }) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -34,12 +36,12 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('public.auth.passwordsMismatch'));
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError(t('public.auth.passwordTooShort'));
       return;
     }
 
@@ -56,7 +58,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
       onRegister(token, user.role);
       navigate('/daily-balancing');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(err.response?.data?.message || t('public.auth.registrationFailed'));
     } finally {
       setLoading(false);
     }
@@ -66,18 +68,18 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
     <PublicAuthLayout
       mode="register"
       hideShowcase
-      title="Create Agent Account"
-      subtitle="Set up your profile to begin tracking transactions and reports."
+      title={t('public.auth.registerTitle')}
+      subtitle={t('public.auth.registerSubtitle')}
       footer={
         <p className="auth-footer">
-          Already have an account? <Link to="/login">Login here</Link>
+          {t('public.auth.haveAccount')} <Link to="/login">{t('public.auth.loginHere')}</Link>
         </p>
       }
     >
       {error && <div className="error-message">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="fullName">Full Name</label>
+          <label htmlFor="fullName">{t('public.auth.fullName')}</label>
           <input
             type="text"
             id="fullName"
@@ -85,11 +87,11 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
             value={formData.fullName}
             onChange={handleChange}
             required
-            placeholder="Enter your full name"
+            placeholder={t('public.auth.enterFullName')}
           />
         </div>
         <div className="form-group">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">{t('public.auth.email')}</label>
           <input
             type="email"
             id="email"
@@ -97,11 +99,11 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
             value={formData.email}
             onChange={handleChange}
             required
-            placeholder="Enter your email"
+            placeholder={t('public.auth.enterEmail')}
           />
         </div>
         <div className="form-group">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">{t('public.auth.password')}</label>
           <div className="password-input-wrapper">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -110,13 +112,13 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
               value={formData.password}
               onChange={handleChange}
               required
-              placeholder="Enter your password"
+              placeholder={t('public.auth.enterPassword')}
             />
             <button
               type="button"
               className="password-toggle"
               onClick={() => setShowPassword((prev) => !prev)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? t('public.auth.hidePassword') : t('public.auth.showPassword')}
             >
               {showPassword ? (
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -134,7 +136,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
           </div>
         </div>
         <div className="form-group">
-          <label htmlFor="confirmPassword">Confirm Password</label>
+          <label htmlFor="confirmPassword">{t('public.auth.confirmPassword')}</label>
           <div className="password-input-wrapper">
             <input
               type={showConfirmPassword ? 'text' : 'password'}
@@ -143,13 +145,13 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              placeholder="Confirm your password"
+              placeholder={t('public.auth.confirmYourPassword')}
             />
             <button
               type="button"
               className="password-toggle"
               onClick={() => setShowConfirmPassword((prev) => !prev)}
-              aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+              aria-label={showConfirmPassword ? t('public.auth.hideConfirmPassword') : t('public.auth.showConfirmPassword')}
             >
               {showConfirmPassword ? (
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -167,7 +169,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
           </div>
         </div>
         <div className="form-group">
-          <label htmlFor="role">Role</label>
+          <label htmlFor="role">{t('public.auth.role')}</label>
           <select
             id="role"
             name="role"
@@ -175,12 +177,12 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
             onChange={handleChange}
             required
           >
-            <option value="employee">Employee</option>
-            <option value="owner">Business Owner</option>
+            <option value="employee">{t('public.auth.employee')}</option>
+            <option value="owner">{t('public.auth.owner')}</option>
           </select>
         </div>
         <button type="submit" disabled={loading} className="btn-primary">
-          {loading ? 'Registering...' : 'Register'}
+          {loading ? t('public.auth.registering') : t('public.auth.register')}
         </button>
       </form>
     </PublicAuthLayout>

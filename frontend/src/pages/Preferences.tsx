@@ -11,13 +11,12 @@ const LANGUAGE_STORAGE_KEY = 'preferred-language';
 const THEME_STORAGE_KEY = 'preferred-theme';
 const NOTIFICATION_STORAGE_KEY = 'notification-preferences';
 
-type LanguageCode = 'en' | 'sw' | 'fr';
+type LanguageCode = 'en' | 'sw';
 type ThemeMode = 'light' | 'dark';
 
 const LANGUAGE_OPTIONS: Array<{ code: LanguageCode; label: string }> = [
   { code: 'en', label: 'English' },
   { code: 'sw', label: 'Swahili' },
-  { code: 'fr', label: 'French' },
 ];
 
 interface NotificationPreferences {
@@ -37,7 +36,7 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (savedLanguage === 'en' || savedLanguage === 'sw' || savedLanguage === 'fr') {
+    if (savedLanguage === 'en' || savedLanguage === 'sw') {
       setLanguage(savedLanguage);
       setLang(savedLanguage as any);
     }
@@ -124,7 +123,6 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
   const handleLanguageChange = (code: LanguageCode) => {
     setLanguage(code);
     setIsLanguageMenuOpen(false);
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, code);
     setLang(code as any);
     setLanguageMessage(t('preferences.saveSuccess'));
   };
@@ -143,7 +141,7 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
             <div className="preferences-subsection">
               <div className="preferences-subsection-header">
                 <h3>{t('preferences.language')}</h3>
-                <p>Choose English, Swahili, or French.</p>
+                <p>Choose English or Swahili.</p>
               </div>
 
               <div className="language-dropdown" ref={languageMenuRef}>
@@ -157,7 +155,7 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
                   <span className="language-flag">{renderFlagIcon(language)}</span>
                   <span className="language-dropdown-text">
                     <strong>{LANGUAGE_OPTIONS.find((option) => option.code === language)?.label}</strong>
-                    <small>Selected language</small>
+                    <small>{t('preferences.language')}</small>
                   </span>
                   <span className="language-dropdown-caret">▾</span>
                 </button>
@@ -182,7 +180,7 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
 
             <div className="preferences-subsection">
               <div className="preferences-subsection-header">
-                <h3>Theme Mode</h3>
+                <h3>{t('preferences.themeMode')}</h3>
                 <p>Switch between light and dark mode.</p>
               </div>
 
@@ -206,14 +204,14 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
 
             <div className="preferences-subsection">
               <div className="preferences-subsection-header">
-                <h3>Notifications</h3>
+                <h3>{t('preferences.notifications')}</h3>
                 <p>Fast alerts for loss updates and account activity.</p>
               </div>
 
               <div className="notification-settings-list">
                 <label className="notification-setting-row">
                   <span>
-                    <strong>SMS Alerts</strong>
+                    <strong>{t('preferences.smsAlerts')}</strong>
                     <small>Get quick text alerts when there is a loss.</small>
                   </span>
                   <button
@@ -228,7 +226,7 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
 
                 <label className="notification-setting-row">
                   <span>
-                    <strong>Email Notifications</strong>
+                    <strong>{t('preferences.emailNotifications')}</strong>
                     <small>Receive email updates for activity and losses.</small>
                   </span>
                   <button

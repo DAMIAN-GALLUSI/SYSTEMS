@@ -136,11 +136,11 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
         cameraVideoRef.current.srcObject = stream;
         cameraVideoRef.current.play().catch(() => {
-          setCameraError('Could not start camera preview.');
+          setCameraError(t('profile.cameraPreviewFailed'));
         });
       });
     } catch {
-      setCameraError('Camera permission denied or unavailable. You can still use Gallery.');
+      setCameraError(t('profile.cameraUnavailable'));
       cameraInputRef.current?.click();
     }
   };
@@ -160,7 +160,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
     const context = canvas.getContext('2d');
     if (!context) {
-      setCameraError('Unable to capture photo from camera.');
+      setCameraError(t('profile.cameraCaptureFailed'));
       return;
     }
 
@@ -169,7 +169,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
     setProfilePhoto(dataUrl);
     localStorage.setItem(PROFILE_PHOTO_STORAGE_KEY, dataUrl);
-    setMessage('Profile picture updated successfully.');
+    setMessage(t('profile.photoUpdated'));
     stopCameraStream();
   };
 
@@ -192,7 +192,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
       setProfilePhoto(result);
       localStorage.setItem(PROFILE_PHOTO_STORAGE_KEY, result);
-      setMessage('Profile picture updated successfully.');
+      setMessage(t('profile.photoUpdated'));
     };
     reader.readAsDataURL(file);
 
@@ -202,7 +202,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
   const handleDeleteProfilePhoto = () => {
     setProfilePhoto(null);
     localStorage.removeItem(PROFILE_PHOTO_STORAGE_KEY);
-    setMessage('Profile picture deleted successfully.');
+    setMessage(t('profile.photoDeleted'));
   };
 
   const handleSave = (event: React.FormEvent) => {
@@ -219,7 +219,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
     setPhone(profilePayload.phone);
 
     localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profilePayload));
-    setMessage('Profile preferences saved successfully.');
+    setMessage(t('profile.saveSuccess'));
     setIsEditingProfile(false);
   };
 
@@ -227,7 +227,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
     const nextStatus = event.target.value as AccountStatus;
     setAccountStatus(nextStatus);
     localStorage.setItem(ACCOUNT_STATUS_STORAGE_KEY, nextStatus);
-    setMessage('Account status updated successfully.');
+    setMessage(t('profile.statusUpdated'));
   };
 
   return (
@@ -263,7 +263,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
               className="profile-edit-trigger"
               onClick={() => setShowPhotoEditor(true)}
             >
-              Edit
+              {t('profile.enableEdit')}
             </button>
             <p className="profile-avatar-caption">Tap fields below to edit profile details</p>
           </div>
@@ -286,7 +286,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   <option value="Active">{t('profile.active')}</option>
                   <option value="Suspended">{t('profile.suspended')}</option>
                 </select>
-                <small>{/* explanatory text, not translated yet */}Your account can be marked active or suspended.</small>
+                <small>Your account can be marked active or suspended.</small>
               </div>
 
               <div
@@ -313,7 +313,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   }}
                   placeholder="Enter your full name"
                 />
-                <small>{/* not translated yet */}This name is visible in your profile.</small>
+                <small>This name is visible in your profile.</small>
               </div>
 
               <div
@@ -341,7 +341,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   }}
                   placeholder="Write a short status"
                 />
-                <small>{/* not translated yet */}Tell people something about you.</small>
+                <small>Tell people something about you.</small>
               </div>
 
               <div
@@ -367,7 +367,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   }}
                   placeholder="+255 700 000 000"
                 />
-                <small>{/* not translated yet */}Phone number linked to your account.</small>
+                <small>Phone number linked to your account.</small>
               </div>
             </div>
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { SERVICES } from '../utils/constants';
 import { ServiceType } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 import './TransactionEntry.css';
 
 interface RegisteredDetailsProps {
@@ -55,6 +56,7 @@ const resolveServiceType = (serviceInput: string): ServiceType | null => {
 
 const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [entries, setEntries] = useState<LineEntry[]>([createEmptyEntry()]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -111,7 +113,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       setLoading(false);
       setMessage({
         type: 'error',
-        text: 'Please enter a valid service name and fill line/card for each row.',
+        text: t('registeredDetails.invalid'),
       });
       return;
     }
@@ -127,14 +129,14 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       };
 
       localStorage.setItem(REGISTERED_DETAILS_STORAGE_KEY, JSON.stringify(payload));
-      setMessage({ type: 'success', text: 'Line saved successfully.' });
+      setMessage({ type: 'success', text: t('registeredDetails.saved') });
       window.setTimeout(() => {
         navigate('/daily-balancing');
       }, 1000);
     } catch (error: any) {
       setMessage({
         type: 'error',
-        text: error?.message || 'Failed to save registered details',
+        text: error?.message || t('registeredDetails.invalid'),
       });
     } finally {
       setLoading(false);
@@ -146,18 +148,18 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       <Navbar onLogout={onLogout} />
       <div className="transaction-content">
         <div className="transaction-card">
-          <h1>Register Your Details</h1>
-          <p className="subtitle">Type the service name, then add each line/card you want to register.</p>
+          <h1>{t('registeredDetails.title')}</h1>
+          <p className="subtitle">{t('registeredDetails.subtitle')}</p>
 
           {message.text && <div className={`message ${message.type}`}>{message.text}</div>}
 
           <form onSubmit={handleSubmit}>
-            <div className="section-header">register lines, your cash and uses of the day</div>
+            <div className="section-header">{t('registeredDetails.sectionHeader')}</div>
             <div className="line-table">
               <div className="line-table-header">
-                <span>Service</span>
-                <span>Telephone Line / Card</span>
-                <span>Action</span>
+                <span>{t('registeredDetails.service')}</span>
+                <span>{t('registeredDetails.lineCard')}</span>
+                <span>{t('registeredDetails.action')}</span>
               </div>
               {entries.map((entry, index) => {
                 return (
@@ -166,14 +168,14 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
                       type="text"
                       value={entry.serviceInput}
                       onChange={(e) => handleEntryChange(index, 'serviceInput', e.target.value)}
-                      placeholder="Service name (e.g. Vodacom, Airtel, Tigo)"
+                      placeholder={t('registeredDetails.servicePlaceholder')}
                       required
                     />
                     <input
                       type="text"
                       value={entry.lineCard}
                       onChange={(e) => handleEntryChange(index, 'lineCard', e.target.value)}
-                      placeholder="Line/Card number"
+                      placeholder={t('registeredDetails.linePlaceholder')}
                       required
                     />
                     <button
@@ -182,7 +184,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
                       onClick={() => removeLineRow(index)}
                       disabled={entries.length === 1}
                     >
-                      Remove
+                      {t('registeredDetails.remove')}
                     </button>
                   </div>
                 );
@@ -190,11 +192,11 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
             </div>
 
             <button type="button" className="line-add-btn" onClick={addLineRow}>
-              + add another line, your cash, or uses of this day
+              {t('registeredDetails.addLine')}
             </button>
 
             <button type="submit" disabled={loading} className="btn-submit">
-              {loading ? 'Saving...' : 'Save Registered Details'}
+              {loading ? t('registeredDetails.saving') : t('registeredDetails.saveDetails')}
             </button>
           </form>
         </div>
