@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import PublicAuthLayout from '../components/PublicAuthLayout';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -11,12 +11,32 @@ interface LoginProps {
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const { t } = useLanguage();
-  const [email, setEmail] = useState('');
+  const location = useLocation();
+  const locationState = location.state as { email?: string; registrationSuccess?: boolean } | null;
+  const [email, setEmail] = useState(locationState?.email ?? localStorage.getItem('pendingLoginEmail') ?? '');
+  const [registeredEmails, setRegisteredEmails] = useState<string[]>([]);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState(locationState?.registrationSuccess ? t('public.auth.registrationSuccess') : '');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedEmail = locationState?.email ?? localStorage.getItem('pendingLoginEmail') ?? '';
+    const storedEmails = JSON.parse(localStorage.getItem('registeredEmails') ?? '[]') as string[];
+
+    setRegisteredEmails(storedEmails);
+
+    if (savedEmail) {
+      setEmail(savedEmail);
+      localStorage.removeItem('pendingLoginEmail');
+    }
+
+    if (locationState?.registrationSuccess) {
+      setSuccessMessage(t('public.auth.registrationSuccess'));
+    }
+  }, [locationState, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,17 +68,25 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       }
     >
       {error && <div className="error-message">{error}</div>}
+      {successMessage && <div className="success-message">{successMessage}</div>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="email">{t('public.auth.email')}</label>
           <input
             type="email"
             id="email"
+            list="registered-email-options"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder={t('public.auth.enterEmail')}
           />
+          <datalist id="registered-email-options">
+            {registeredEmails.map((registeredEmail) => (
+              <option key={registeredEmail} value={registeredEmail} />
+            ))}
+          </datalist>
         </div>
         <div className="form-group">
           <label htmlFor="password">{t('public.auth.password')}</label>

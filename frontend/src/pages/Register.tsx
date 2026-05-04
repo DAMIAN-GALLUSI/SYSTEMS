@@ -6,11 +6,12 @@ import { useLanguage } from '../contexts/LanguageContext';
 import './Auth.css';
 
 interface RegisterProps {
-  onRegister: (token: string, role: string) => void;
+  onRegister?: (token: string, role: string) => void;
 }
 
-const Register: React.FC<RegisterProps> = ({ onRegister }) => {
+const Register: React.FC<RegisterProps> = ({ onRegister: _onRegister }) => {
   const { t } = useLanguage();
+  void _onRegister;
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -48,15 +49,25 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
     setLoading(true);
 
     try {
-      const response = await authAPI.register(
+      await authAPI.register(
         formData.email,
         formData.password,
         formData.fullName,
         formData.role
       );
-      const { token, user } = response.data;
-      onRegister(token, user.role);
-      navigate('/daily-balancing');
+
+      const normalizedEmail = formData.email.trim().toLowerCase();
+      const storedEmails = JSON.parse(localStorage.getItem('registeredEmails') ?? '[]') as string[];
+      const uniqueEmails = Array.from(new Set([...storedEmails, normalizedEmail]));
+      localStorage.setItem('registeredEmails', JSON.stringify(uniqueEmails));
+
+      localStorage.setItem('pendingLoginEmail', formData.email);
+      navigate('/login', {
+        state: {
+          email: formData.email,
+          registrationSuccess: true,
+        },
+      });
     } catch (err: any) {
       setError(err.response?.data?.message || t('public.auth.registrationFailed'));
     } finally {

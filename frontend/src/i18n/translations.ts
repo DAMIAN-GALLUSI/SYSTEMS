@@ -74,6 +74,7 @@ const translations = {
         passwordsMismatch: 'Passwords do not match',
         passwordTooShort: 'Password must be at least 6 characters',
         registrationFailed: 'Registration failed. Please try again.',
+        registrationSuccess: 'Registration successful. Please log in with your email.',
       },
       services: {
         title: 'Services We Support',
@@ -231,7 +232,6 @@ const translations = {
       yearlySummary: 'Summary and transactions for this year',
       generateError: 'Failed to generate reports. Please try again.',
       invalidDate: 'Please choose a valid date.',
-      serviceFilter: 'Service filter',
       loading: 'Loading...',
     },
   },
@@ -309,6 +309,7 @@ const translations = {
         passwordsMismatch: 'Manenosiri hayalingani',
         passwordTooShort: 'Nenosiri lazima liwe na angalau herufi 6',
         registrationFailed: 'Usajili umeshindwa. Jaribu tena.',
+        registrationSuccess: 'Usajili umefanikiwa. Tafadhali ingia kwa kutumia barua pepe yako.',
       },
       services: {
         title: 'Huduma Tunazosaidia',
@@ -466,7 +467,6 @@ const translations = {
       yearlySummary: 'Muhtasari na miamala ya mwaka huu',
       generateError: 'Imeshindikana kutengeneza ripoti. Tafadhali jaribu tena.',
       invalidDate: 'Tafadhali chagua tarehe halali.',
-      serviceFilter: 'Kichujio cha huduma',
       loading: 'Inapakia...',
     },
   },

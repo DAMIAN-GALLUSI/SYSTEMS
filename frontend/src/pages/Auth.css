@@ -386,6 +386,16 @@
   font-size: 0.9rem;
 }
 
+.success-message {
+  background: #eefaf2;
+  color: #166b3e;
+  border: 1px solid #ccefd8;
+  padding: 0.75rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
 .form-group {
   margin-bottom: 1rem;
 }
