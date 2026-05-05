@@ -12,6 +12,23 @@ interface DashboardProps {
   onLogout: () => void;
 }
 
+interface SavedDailyBalancing {
+  savedAt: string;
+  savedDayKey?: string;
+  entries: Array<{
+    serviceType: string;
+    serviceName: string;
+    lineCard: string;
+    amount: string;
+  }>;
+  cashInHand: string;
+  dailyConsumption: string;
+  notes: string;
+  saveBatchId?: string;
+}
+
+const SAVED_DAILY_BALANCING_STORAGE_KEY = 'saved-daily-balancing';
+
 const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -20,16 +37,106 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const [days, setDays] = useState(30);
 
   useEffect(() => {
+    loadLocalData();
     fetchDashboardData();
     fetchProfitLossData();
   }, [days]);
 
+  const loadLocalData = () => {
+    try {
+      const raw = localStorage.getItem(SAVED_DAILY_BALANCING_STORAGE_KEY);
+      if (!raw) {
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as SavedDailyBalancing | SavedDailyBalancing[];
+      const history = Array.isArray(parsed) ? parsed : [parsed];
+      const safeHistory = history.filter((entry) => Array.isArray(entry?.entries));
+
+      if (safeHistory.length < 1) {
+        return;
+      }
+
+      // Get all unique services from history
+      const serviceMap = new Map<string, { service_type: string; line_card: string; amount: number; cash_in_hand: number; created_at: string }>();
+      
+      for (const dailyEntry of safeHistory) {
+        const cashInHand = Number(dailyEntry.cashInHand) || 0;
+        for (const entry of dailyEntry.entries) {
+          const key = `${entry.serviceType}::${entry.lineCard}`;
+          const amount = Number(entry.amount) || 0;
+          serviceMap.set(key, {
+            service_type: entry.serviceType,
+            line_card: entry.lineCard,
+            amount,
+            cash_in_hand: cashInHand,
+            created_at: dailyEntry.savedAt,
+          });
+        }
+      }
+
+      // Build profit/loss data from daily history
+      const dailyMap = new Map<string, { circulating: number; consumption: number }>();
+      for (const dailyEntry of safeHistory) {
+        const dayKey = dailyEntry.savedDayKey || new Date(dailyEntry.savedAt).toISOString().slice(0, 10);
+        const cashInHand = Number(dailyEntry.cashInHand) || 0;
+        const linesTotal = dailyEntry.entries.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+        const circulating = cashInHand + linesTotal;
+        const consumption = Number(dailyEntry.dailyConsumption) || 0;
+        
+        dailyMap.set(dayKey, { circulating, consumption });
+      }
+
+      // Create profit/loss trend
+      const sortedDays = Array.from(dailyMap.keys()).sort();
+      const trendData: ProfitLossData[] = [];
+      let previousCirculating = 0;
+
+      for (const dayKey of sortedDays) {
+        const day = dailyMap.get(dayKey);
+        if (!day) continue;
+
+        const profitOrLoss = day.circulating - previousCirculating - day.consumption;
+        trendData.push({
+          date: dayKey,
+          profit: profitOrLoss,
+          circulatingTotal: day.circulating,
+        });
+        previousCirculating = day.circulating;
+      }
+
+      setProfitLossData(trendData);
+
+      // Set dashboard data with services
+      setDashboardData({
+        services: Array.from(serviceMap.values()).map(s => ({
+          ...s,
+          service_type: s.service_type as any,
+        })),
+        summary: {
+          total_circulating: serviceMap.size > 0 
+            ? Array.from(serviceMap.values()).reduce((sum, s) => sum + s.cash_in_hand, 0)
+            : 0,
+          current_profit_loss: trendData.length > 0 ? trendData[trendData.length - 1].profit : 0,
+          previous_total: 0,
+          total_transactions: safeHistory.length,
+        },
+        generatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Failed to load local data:', error);
+    }
+  };
+
   const fetchDashboardData = async () => {
     try {
       const response = await dashboardAPI.getData();
-      setDashboardData(response.data);
+      if (response.data && Object.keys(response.data).length > 0) {
+        setDashboardData(response.data);
+      }
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
+      console.error('Failed to fetch dashboard data from API:', error);
+      // API failed, but we already have local data from loadLocalData()
     }
   };
 
@@ -37,9 +144,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     try {
       setLoading(true);
       const response = await dashboardAPI.getProfitLoss(days);
-      setProfitLossData(response.data.profitLossData);
+      if (response.data?.profitLossData && response.data.profitLossData.length > 0) {
+        setProfitLossData(response.data.profitLossData);
+      }
     } catch (error) {
-      console.error('Failed to fetch profit/loss data:', error);
+      console.error('Failed to fetch profit/loss data from API:', error);
+      setLoading(false);
+      // API failed, but we already have local data from loadLocalData()
     } finally {
       setLoading(false);
     }

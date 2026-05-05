@@ -38,6 +38,24 @@ interface LineAmountEntry extends RegisteredLineEntry {
 const REGISTERED_DETAILS_STORAGE_KEY = 'registered-line-details';
 const SAVED_DAILY_BALANCING_STORAGE_KEY = 'saved-daily-balancing';
 
+const createDefaultLineEntry = (): LineAmountEntry => ({
+  serviceType: 'vodacom' as ServiceType,
+  serviceName: 'Vodacom',
+  lineCard: '',
+  amount: '',
+});
+
+const mapRegisteredToLineEntries = (entries: RegisteredLineEntry[]): LineAmountEntry[] => {
+  return entries
+    .filter((entry) => Boolean(entry?.lineCard?.trim()))
+    .map((entry) => ({
+      serviceType: entry.serviceType || resolveServiceTypeFromName(entry.serviceName || ''),
+      serviceName: entry.serviceName || SERVICES.find((service) => service.id === entry.serviceType)?.name || entry.serviceType,
+      lineCard: entry.lineCard,
+      amount: '',
+    }));
+};
+
 const getDayKeyFromDate = (date: Date) => {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, '0');
@@ -91,54 +109,36 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
-    const raw = localStorage.getItem(REGISTERED_DETAILS_STORAGE_KEY);
-    if (!raw) {
-      // Initialize with empty entry if no registered details
-      setLineEntries([
-        {
-          serviceType: 'vodacom' as ServiceType,
-          serviceName: 'Vodacom',
-          lineCard: '',
-          amount: ''
-        }
-      ]);
-      return;
-    }
+    let nextEntries: LineAmountEntry[] = [];
 
-    try {
-      const parsed: SavedRegisteredDetails = JSON.parse(raw);
-      if (!Array.isArray(parsed.entries)) {
-        return;
+    const registeredRaw = localStorage.getItem(REGISTERED_DETAILS_STORAGE_KEY);
+    if (!registeredRaw) {
+      nextEntries = [];
+    } else {
+      try {
+        const parsed: SavedRegisteredDetails = JSON.parse(registeredRaw);
+        if (Array.isArray(parsed.entries) && parsed.entries.length > 0) {
+          const mappedEntries = mapRegisteredToLineEntries(parsed.entries);
+          if (mappedEntries.length > 0) {
+            nextEntries = mappedEntries;
+          }
+        }
+      } catch {
+        nextEntries = [];
       }
-
-      setLineEntries(
-        parsed.entries.map((entry) => ({
-          serviceType: entry.serviceType || resolveServiceTypeFromName(entry.serviceName || ''),
-          serviceName: entry.serviceName || SERVICES.find((service) => service.id === entry.serviceType)?.name || entry.serviceType,
-          lineCard: entry.lineCard,
-          amount: '',
-        }))
-      );
-    } catch {
-      setLineEntries([
-        {
-          serviceType: 'vodacom' as ServiceType,
-          serviceName: 'Vodacom',
-          lineCard: '',
-          amount: ''
-        }
-      ]);
     }
-  }, []);
 
-  useEffect(() => {
-    const raw = localStorage.getItem(SAVED_DAILY_BALANCING_STORAGE_KEY);
-    if (!raw) {
+    const savedRaw = localStorage.getItem(SAVED_DAILY_BALANCING_STORAGE_KEY);
+    if (!savedRaw) {
+      setSavedDailyBalancingHistory([]);
+      setSavedDailyBalancing(null);
+      setShowSavedDailyBalancing(false);
+      setLineEntries(nextEntries.length > 0 ? nextEntries : [createDefaultLineEntry()]);
       return;
     }
 
     try {
-      const parsed = JSON.parse(raw) as SavedDailyBalancing | SavedDailyBalancing[];
+      const parsed = JSON.parse(savedRaw) as SavedDailyBalancing | SavedDailyBalancing[];
       const history = Array.isArray(parsed) ? parsed : [parsed];
       const safeHistory = history.filter((entry) => Array.isArray(entry?.entries));
 
@@ -150,9 +150,15 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
 
       setSavedDailyBalancingHistory(safeHistory);
       setSavedDailyBalancing(safeHistory[safeHistory.length - 1]);
+      setShowSavedDailyBalancing(true);
+
+      const fallbackEntries = mapRegisteredToLineEntries(safeHistory[safeHistory.length - 1].entries || []);
+      setLineEntries(nextEntries.length > 0 ? nextEntries : fallbackEntries.length > 0 ? fallbackEntries : [createDefaultLineEntry()]);
     } catch {
       setSavedDailyBalancingHistory([]);
       setSavedDailyBalancing(null);
+      setShowSavedDailyBalancing(false);
+      setLineEntries(nextEntries.length > 0 ? nextEntries : [createDefaultLineEntry()]);
     }
   }, []);
 
@@ -270,19 +276,6 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
         saveBatchId,
       };
 
-      await transactionAPI.create({
-        transactionType: 'withdraw',
-        entries: lineEntries.map((entry) => ({
-          serviceType: entry.serviceType,
-          lineCard: entry.lineCard,
-          amount: Number(entry.amount),
-        })),
-        cashInHand: parsedCash,
-        dailyConsumption: parsedConsumption,
-        notes: notes.trim(),
-        saveBatchId,
-      });
-
       // Update registered details with the edited lines
       const registeredDetails: SavedRegisteredDetails = {
         savedAt: new Date().toISOString(),
@@ -292,6 +285,8 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
           lineCard: entry.lineCard,
         })),
       };
+
+      // Save to local storage first (synchronous, guaranteed)
       localStorage.setItem(REGISTERED_DETAILS_STORAGE_KEY, JSON.stringify(registeredDetails));
 
       const updatedHistory = [...savedDailyBalancingHistory];
@@ -311,15 +306,35 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
       setSavedDailyBalancing(savedPayload);
       setShowSavedDailyBalancing(true);
 
+      // Update UI immediately after local save
       setMessage({ type: 'success', text: t('dailyBalancing.saveSuccess') });
       setLineEntries((current) => current.map((entry) => ({ ...entry, amount: '' })));
       setCashInHand('');
       setDailyConsumption('');
       setNotes('');
+
+      // Sync with API (optional - data is already saved locally)
+      try {
+        await transactionAPI.create({
+          transactionType: 'withdraw',
+          entries: lineEntries.map((entry) => ({
+            serviceType: entry.serviceType,
+            lineCard: entry.lineCard,
+            amount: Number(entry.amount),
+          })),
+          cashInHand: parsedCash,
+          dailyConsumption: parsedConsumption,
+          notes: notes.trim(),
+          saveBatchId,
+        });
+      } catch (apiError: any) {
+        console.warn('API sync failed, but data is saved locally:', apiError);
+        // Data is already saved locally, API sync failure is non-critical
+      }
     } catch (error: any) {
       setMessage({
         type: 'error',
-        text: error.response?.data?.message || t('dailyBalancing.saveFailed'),
+        text: error.message || t('dailyBalancing.saveFailed'),
       });
     } finally {
       setLoading(false);

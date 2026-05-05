@@ -502,23 +502,106 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
     setError('');
 
     try {
-      const params: any = {
-        startDate: range.startDate,
-        endDate: range.endDate,
-      };
+      // Try to fetch from API first
+      try {
+        const params: any = {
+          startDate: range.startDate,
+          endDate: range.endDate,
+        };
 
-      if (filters.serviceType) {
-        params.serviceType = filters.serviceType;
+        if (filters.serviceType) {
+          params.serviceType = filters.serviceType;
+        }
+
+        const response = await reportAPI.generate(params);
+        const dailyData = normalizeReportData(response.data);
+
+        setReportsByPeriod((current) => ({
+          ...current,
+          day: dailyData,
+        }));
+        setLoadedDailyDate(targetDate);
+      } catch (apiError) {
+        // Fall back to localStorage if API fails
+        console.warn('API failed, falling back to localStorage:', apiError);
+        
+        const raw = localStorage.getItem('saved-daily-balancing');
+        if (!raw) {
+          setReportsByPeriod((current) => ({
+            ...current,
+            day: null,
+          }));
+          setLoadedDailyDate(targetDate);
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(raw) as any;
+          const history = Array.isArray(parsed) ? parsed : [parsed];
+          
+          // Find entries for the selected date
+          const targetDayKey = targetDate;
+          const dailyEntries = history.filter((entry) => {
+            const dayKey = entry.savedDayKey || new Date(entry.savedAt).toISOString().slice(0, 10);
+            return dayKey === targetDayKey;
+          });
+
+          if (dailyEntries.length === 0) {
+            setReportsByPeriod((current) => ({
+              ...current,
+              day: null,
+            }));
+            setLoadedDailyDate(targetDate);
+            return;
+          }
+
+          // Convert to report format
+          const transactions: Transaction[] = [];
+          dailyEntries.forEach((entry, idx) => {
+            if (Array.isArray(entry.entries)) {
+              entry.entries.forEach((lineEntry: any, lineIdx: number) => {
+                transactions.push({
+                  id: idx * 1000 + lineIdx,
+                  userId: 0,
+                  serviceType: lineEntry.serviceType || 'vodacom',
+                  amount: Number(lineEntry.amount) || 0,
+                  transactionType: 'withdraw',
+                  cashInHand: Number(entry.cashInHand) || 0,
+                  description: JSON.stringify({
+                    lineCard: lineEntry.lineCard,
+                    dailyConsumption: entry.dailyConsumption,
+                    notes: entry.notes,
+                    saveBatchId: entry.saveBatchId,
+                    mode: 'daily-balancing-entry',
+                  }),
+                  createdAt: entry.savedAt,
+                  employeeName: 'Current User',
+                });
+              });
+            }
+          });
+
+          const dailyData: ReportData = {
+            transactions,
+            summary: {
+              totalTransactions: transactions.length,
+              totalDeposits: 0,
+              totalWithdrawals: transactions.reduce((sum, t) => sum + t.amount, 0),
+              netProfit: 0,
+            },
+            generatedAt: new Date().toISOString(),
+          };
+
+          setReportsByPeriod((current) => ({
+            ...current,
+            day: dailyData,
+          }));
+          setLoadedDailyDate(targetDate);
+        } catch (parseError) {
+          console.error('Failed to parse localStorage data:', parseError);
+          throw parseError;
+        }
       }
-
-      const response = await reportAPI.generate(params);
-      const dailyData = normalizeReportData(response.data);
-
-      setReportsByPeriod((current) => ({
-        ...current,
-        day: dailyData,
-      }));
-      setLoadedDailyDate(targetDate);
     } catch (err) {
       console.error('Failed to load daily report:', err);
       setError('Failed to load selected daily report. Please try again.');

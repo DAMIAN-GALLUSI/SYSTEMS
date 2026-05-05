@@ -44,6 +44,15 @@
       "role": "employee",
       "created_at": "2026-05-04T18:01:19.345Z",
       "updated_at": "2026-05-04T18:01:19.345Z"
+    },
+    {
+      "id": 6,
+      "email": "test@example.com",
+      "password": "$2a$10$jYkNwJNnmhoBolqRRXxX.u41XN353LYQs2hNFnOYLQC1cq0LK/K.y",
+      "full_name": "Test Agent",
+      "role": "employee",
+      "created_at": "2026-05-05T07:15:48.972Z",
+      "updated_at": "2026-05-05T07:15:48.972Z"
     }
   ]
 }
