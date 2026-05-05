@@ -121,7 +121,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           previous_total: 0,
           total_transactions: safeHistory.length,
         },
-        generatedAt: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Failed to load local data:', error);
