@@ -196,19 +196,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                   {netProfit >= 0 ? t('dashboard.profitShort') : t('dashboard.lossShort')}
                 </span>
               </div>
-              <p className={`summary-amount ${netProfit >= 0 ? 'profit' : 'loss'}`}>
-                {new Intl.NumberFormat('en-TZ', {
-                  style: 'currency',
-                  currency: 'TZS',
-                  minimumFractionDigits: 0
-                }).format(netProfit)}
-              </p>
-              <p className="summary-note summary-note-strong summary-inline-result">
+              <p className={`summary-amount summary-inline-result ${netProfit >= 0 ? 'profit' : 'loss'}`}>
                 {netProfitLabel}: {new Intl.NumberFormat('en-TZ', {
                   style: 'currency',
                   currency: 'TZS',
                   minimumFractionDigits: 0
                 }).format(netProfit)}
+              </p>
+              <p className={`summary-amount summary-inline-result ${netProfit >= 0 ? 'profit' : 'loss'}`}>
+                {t('dashboard.updatedToday')}: {new Intl.NumberFormat('en-TZ', {
+                  style: 'currency',
+                  currency: 'TZS',
+                  minimumFractionDigits: 0
+                }).format(totalCash)}
               </p>
             </div>
           </div>

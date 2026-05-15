@@ -68,6 +68,20 @@
   color: #ef4444;
 }
 
+.summary-inline-result {
+  margin-top: 0.75rem;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.summary-inline-result.profit {
+  color: #5f7f6e;
+}
+
+.summary-inline-result.loss {
+  color: #ef4444;
+}
+
 .summary-note {
   margin-top: 0.5rem;
   font-size: 0.85rem;
