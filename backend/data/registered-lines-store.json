@@ -1,0 +1,28 @@
+{
+  "lines": [
+    {
+      "id": "2-1778835938382-0",
+      "userId": 2,
+      "serviceType": "vodacom",
+      "lineCard": "1234",
+      "createdAt": "2026-05-15T09:05:38.382Z",
+      "updatedAt": "2026-05-15T09:05:38.382Z"
+    },
+    {
+      "id": "2-1778835938382-1",
+      "userId": 2,
+      "serviceType": "tigo",
+      "lineCard": "4657",
+      "createdAt": "2026-05-15T09:05:38.382Z",
+      "updatedAt": "2026-05-15T09:05:38.382Z"
+    },
+    {
+      "id": "2-1778835938382-2",
+      "userId": 2,
+      "serviceType": "airtel",
+      "lineCard": "12345",
+      "createdAt": "2026-05-15T09:05:38.382Z",
+      "updatedAt": "2026-05-15T09:05:38.382Z"
+    }
+  ]
+}

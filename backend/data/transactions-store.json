@@ -429,6 +429,36 @@
       "cash_in_hand": 100000,
       "description": "{\"lineCard\":\"0123456789\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":15000,\"notes\":\"Test balancing entry\",\"saveBatchId\":\"1777965396306\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
       "created_at": "2026-05-05T07:16:36.525Z"
+    },
+    {
+      "id": 44,
+      "user_id": 2,
+      "service_type": "vodacom",
+      "amount": 123456,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 45,
+      "description": "{\"lineCard\":\"1234\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":789,\"notes\":\"ok bisness is growing\",\"saveBatchId\":\"1778836311336\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-05-15T09:11:51.429Z"
+    },
+    {
+      "id": 45,
+      "user_id": 2,
+      "service_type": "tigo",
+      "amount": 56,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 45,
+      "description": "{\"lineCard\":\"4657\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":789,\"notes\":\"ok bisness is growing\",\"saveBatchId\":\"1778836311336\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-05-15T09:11:51.437Z"
+    },
+    {
+      "id": 46,
+      "user_id": 2,
+      "service_type": "airtel",
+      "amount": 900000000000000,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 45,
+      "description": "{\"lineCard\":\"12345\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":789,\"notes\":\"ok bisness is growing\",\"saveBatchId\":\"1778836311336\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-05-15T09:11:51.450Z"
     }
   ]
 }

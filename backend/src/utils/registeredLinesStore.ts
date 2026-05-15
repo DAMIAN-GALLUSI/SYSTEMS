@@ -50,8 +50,9 @@ export async function saveRegisteredLines(
 
   // Add new lines
   const now = new Date().toISOString();
+  const timestamp = Date.now();
   const newLines: RegisteredLineRecord[] = lines.map((line, index) => ({
-    id: `${userId}-${now.getTime()}-${index}`,
+    id: `${userId}-${timestamp}-${index}`,
     userId,
     serviceType: line.serviceType,
     lineCard: line.lineCard,
