@@ -36,6 +36,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
 
+  const latestProfitLossPoint = profitLossData.length > 0 ? profitLossData[profitLossData.length - 1] : null;
+  const visibleProfitLoss = latestProfitLossPoint?.profit ?? dashboardData?.summary?.current_profit_loss ?? 0;
+
   useEffect(() => {
     loadLocalData();
     fetchDashboardData();
@@ -165,7 +168,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const totalCash = dashboardData?.summary?.total_circulating || 0;
 
-  const netProfit = dashboardData?.summary?.current_profit_loss || 0;
+  const netProfit = visibleProfitLoss;
+
+  const netProfitLabel = netProfit >= 0 ? t('dashboard.todayThereIsProfit') : t('dashboard.todayThereIsLoss');
 
   return (
     <div className="dashboard-container">
@@ -184,8 +189,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 }).format(totalCash)}
               </p>
             </div>
-            <div className="summary-card">
-              <h3>{t('dashboard.todayVsPrevious')}</h3>
+            <div className="summary-card summary-card-spotlight">
+              <div className="summary-card-header">
+                <h3>{t('dashboard.todayVsPrevious')}</h3>
+                <span className={`summary-pill ${netProfit >= 0 ? 'profit' : 'loss'}`}>
+                  {netProfit >= 0 ? t('dashboard.profitShort') : t('dashboard.lossShort')}
+                </span>
+              </div>
               <p className={`summary-amount ${netProfit >= 0 ? 'profit' : 'loss'}`}>
                 {new Intl.NumberFormat('en-TZ', {
                   style: 'currency',
@@ -193,8 +203,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                   minimumFractionDigits: 0
                 }).format(netProfit)}
               </p>
-              <p className="summary-note">
-                {netProfit >= 0 ? t('dashboard.profitNote') : t('dashboard.lossNote')}
+              <p className="summary-note summary-note-strong summary-inline-result">
+                {netProfitLabel}: {new Intl.NumberFormat('en-TZ', {
+                  style: 'currency',
+                  currency: 'TZS',
+                  minimumFractionDigits: 0
+                }).format(netProfit)}
               </p>
             </div>
           </div>

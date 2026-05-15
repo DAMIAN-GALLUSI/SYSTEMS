@@ -33,6 +33,18 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.summary-card-spotlight {
+  border: 1px solid rgba(0, 102, 204, 0.12);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.summary-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .summary-card h3 {
   font-size: 0.9rem;
   color: #666;
@@ -60,6 +72,33 @@
   margin-top: 0.5rem;
   font-size: 0.85rem;
   color: #6b7280;
+}
+
+.summary-note-strong {
+  font-weight: 600;
+  color: #334155;
+}
+
+.summary-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.summary-pill.profit {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.summary-pill.loss {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
 }
 
 .chart-section {
