@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Navbar from '../components/Navbar';
-import { transactionAPI } from '../services/api';
+import { transactionAPI, registeredLinesAPI } from '../services/api';
 import { ServiceType } from '../types';
 import { SERVICES } from '../utils/constants';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -109,57 +109,77 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
-    let nextEntries: LineAmountEntry[] = [];
+    const loadRegisteredLines = async () => {
+      let nextEntries: LineAmountEntry[] = [];
 
-    const registeredRaw = localStorage.getItem(REGISTERED_DETAILS_STORAGE_KEY);
-    if (!registeredRaw) {
-      nextEntries = [];
-    } else {
+      // Try to fetch from backend first
       try {
-        const parsed: SavedRegisteredDetails = JSON.parse(registeredRaw);
-        if (Array.isArray(parsed.entries) && parsed.entries.length > 0) {
-          const mappedEntries = mapRegisteredToLineEntries(parsed.entries);
+        const response = await registeredLinesAPI.getAll();
+        if (response.data?.lines && Array.isArray(response.data.lines) && response.data.lines.length > 0) {
+          const mappedEntries = response.data.lines.map((line: any) => ({
+            serviceType: line.serviceType as ServiceType,
+            serviceName: SERVICES.find((s) => s.id === line.serviceType)?.name || line.serviceType,
+            lineCard: line.lineCard,
+            amount: '',
+          }));
           if (mappedEntries.length > 0) {
             nextEntries = mappedEntries;
           }
         }
-      } catch {
-        nextEntries = [];
+      } catch (error: any) {
+        console.warn('Failed to fetch registered lines from backend, falling back to localStorage:', error);
+        // Fallback to localStorage
+        const registeredRaw = localStorage.getItem(REGISTERED_DETAILS_STORAGE_KEY);
+        if (registeredRaw) {
+          try {
+            const parsed: SavedRegisteredDetails = JSON.parse(registeredRaw);
+            if (Array.isArray(parsed.entries) && parsed.entries.length > 0) {
+              const mappedEntries = mapRegisteredToLineEntries(parsed.entries);
+              if (mappedEntries.length > 0) {
+                nextEntries = mappedEntries;
+              }
+            }
+          } catch {
+            nextEntries = [];
+          }
+        }
       }
-    }
 
-    const savedRaw = localStorage.getItem(SAVED_DAILY_BALANCING_STORAGE_KEY);
-    if (!savedRaw) {
-      setSavedDailyBalancingHistory([]);
-      setSavedDailyBalancing(null);
-      setShowSavedDailyBalancing(false);
-      setLineEntries(nextEntries.length > 0 ? nextEntries : [createDefaultLineEntry()]);
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(savedRaw) as SavedDailyBalancing | SavedDailyBalancing[];
-      const history = Array.isArray(parsed) ? parsed : [parsed];
-      const safeHistory = history.filter((entry) => Array.isArray(entry?.entries));
-
-      if (safeHistory.length < 1) {
+      const savedRaw = localStorage.getItem(SAVED_DAILY_BALANCING_STORAGE_KEY);
+      if (!savedRaw) {
+        setSavedDailyBalancingHistory([]);
+        setSavedDailyBalancing(null);
+        setShowSavedDailyBalancing(false);
+        setLineEntries(nextEntries.length > 0 ? nextEntries : [createDefaultLineEntry()]);
         return;
       }
 
-      safeHistory.sort((a, b) => new Date(a.savedAt).getTime() - new Date(b.savedAt).getTime());
+      try {
+        const parsed = JSON.parse(savedRaw) as SavedDailyBalancing | SavedDailyBalancing[];
+        const history = Array.isArray(parsed) ? parsed : [parsed];
+        const safeHistory = history.filter((entry) => Array.isArray(entry?.entries));
 
-      setSavedDailyBalancingHistory(safeHistory);
-      setSavedDailyBalancing(safeHistory[safeHistory.length - 1]);
-      setShowSavedDailyBalancing(true);
+        if (safeHistory.length < 1) {
+          return;
+        }
 
-      const fallbackEntries = mapRegisteredToLineEntries(safeHistory[safeHistory.length - 1].entries || []);
-      setLineEntries(nextEntries.length > 0 ? nextEntries : fallbackEntries.length > 0 ? fallbackEntries : [createDefaultLineEntry()]);
-    } catch {
-      setSavedDailyBalancingHistory([]);
-      setSavedDailyBalancing(null);
-      setShowSavedDailyBalancing(false);
-      setLineEntries(nextEntries.length > 0 ? nextEntries : [createDefaultLineEntry()]);
-    }
+        safeHistory.sort((a, b) => new Date(a.savedAt).getTime() - new Date(b.savedAt).getTime());
+
+        setSavedDailyBalancingHistory(safeHistory);
+        setSavedDailyBalancing(safeHistory[safeHistory.length - 1]);
+        setShowSavedDailyBalancing(true);
+
+        // Use registered lines if available, otherwise use last saved entries as fallback
+        setLineEntries(nextEntries.length > 0 ? nextEntries : [createDefaultLineEntry()]);
+      } catch {
+        setSavedDailyBalancingHistory([]);
+        setSavedDailyBalancing(null);
+        setShowSavedDailyBalancing(false);
+        setLineEntries(nextEntries.length > 0 ? nextEntries : [createDefaultLineEntry()]);
+      }
+    };
+
+    loadRegisteredLines();
   }, []);
 
   const totalLineAmount = useMemo(() => {
@@ -276,18 +296,9 @@ const DailyBalancing: React.FC<DailyBalancingProps> = ({ onLogout }) => {
         saveBatchId,
       };
 
-      // Update registered details with the edited lines
-      const registeredDetails: SavedRegisteredDetails = {
-        savedAt: new Date().toISOString(),
-        entries: lineEntries.map((entry) => ({
-          serviceType: entry.serviceType,
-          serviceName: entry.serviceName,
-          lineCard: entry.lineCard,
-        })),
-      };
-
-      // Save to local storage first (synchronous, guaranteed)
-      localStorage.setItem(REGISTERED_DETAILS_STORAGE_KEY, JSON.stringify(registeredDetails));
+      // IMPORTANT: Do NOT update registered-line-details here!
+      // Registered lines are stored separately and should never be overwritten by daily balancing saves.
+      // Daily balancing should only save to the daily balancing history.
 
       const updatedHistory = [...savedDailyBalancingHistory];
       const todayKey = savedPayload.savedDayKey;

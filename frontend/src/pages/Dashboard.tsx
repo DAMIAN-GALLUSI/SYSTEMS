@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import Navbar from '../components/Navbar';
 import ServiceCard from '../components/ServiceCard';
-import { dashboardAPI } from '../services/api';
+import { dashboardAPI, registeredLinesAPI } from '../services/api';
 import { SERVICES } from '../utils/constants';
 import { DashboardData, ProfitLossData } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -32,6 +32,7 @@ const SAVED_DAILY_BALANCING_STORAGE_KEY = 'saved-daily-balancing';
 const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [registeredLines, setRegisteredLines] = useState<Array<{ serviceType: string; lineCard: string }>>([]);
   const [profitLossData, setProfitLossData] = useState<ProfitLossData[]>([]);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
@@ -41,6 +42,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   useEffect(() => {
     loadLocalData();
+    fetchRegisteredLines();
     fetchDashboardData();
     fetchProfitLossData();
   }, [days]);
@@ -139,6 +141,21 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     } catch (error) {
       console.error('Failed to fetch dashboard data from API:', error);
       // API failed, but we already have local data from loadLocalData()
+    }
+  };
+
+  const fetchRegisteredLines = async () => {
+    try {
+      const response = await registeredLinesAPI.getAll();
+      if (response.data?.lines && Array.isArray(response.data.lines)) {
+        setRegisteredLines(response.data.lines.map((line: any) => ({
+          serviceType: line.serviceType,
+          lineCard: line.lineCard,
+        })));
+      }
+    } catch (error) {
+      console.error('Failed to fetch registered lines from API:', error);
+      // API failed, use fallback
     }
   };
 
@@ -267,17 +284,21 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         <div className="services-section">
           <h2>{t('dashboard.registeredLines')}</h2>
           <div className="services-grid">
-            {dashboardData?.services.length ? (
-              dashboardData.services.map((entry, index) => {
-                const style = getServiceStyle(entry.service_type);
+            {registeredLines.length > 0 ? (
+              registeredLines.map((line, index) => {
+                const style = getServiceStyle(line.serviceType);
+                // Find the amount from dashboard data if available
+                const dashboardEntry = dashboardData?.services?.find(
+                  (s) => s.service_type === line.serviceType && s.line_card === line.lineCard
+                );
                 return (
                   <ServiceCard
-                    key={`${entry.service_type}-${entry.line_card}-${index}`}
+                    key={`${line.serviceType}-${line.lineCard}-${index}`}
                     name={style.name}
-                    lineCard={entry.line_card}
+                    lineCard={line.lineCard}
                     color={style.color}
                     textColor={style.textColor}
-                    amount={Number(entry.amount) || 0}
+                    amount={dashboardEntry ? Number(dashboardEntry.amount) || 0 : 0}
                   />
                 );
               })

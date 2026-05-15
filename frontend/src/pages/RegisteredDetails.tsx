@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import { SERVICES } from '../utils/constants';
 import { ServiceType } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { registeredLinesAPI } from '../services/api';
 import './TransactionEntry.css';
 
 interface RegisteredDetailsProps {
@@ -119,6 +120,15 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
     }
 
     try {
+      const lines = entries.map((entry) => ({
+        serviceType: resolveServiceType(entry.serviceInput) as ServiceType,
+        lineCard: entry.lineCard.trim(),
+      }));
+
+      // Save to backend
+      await registeredLinesAPI.save(lines);
+
+      // Also save to localStorage as fallback
       const payload: SavedRegisteredDetails = {
         savedAt: new Date().toISOString(),
         entries: entries.map((entry) => ({
@@ -127,8 +137,8 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
           lineCard: entry.lineCard.trim(),
         })),
       };
-
       localStorage.setItem(REGISTERED_DETAILS_STORAGE_KEY, JSON.stringify(payload));
+
       setMessage({ type: 'success', text: t('registeredDetails.saved') });
       window.setTimeout(() => {
         navigate('/daily-balancing');
@@ -136,7 +146,7 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
     } catch (error: any) {
       setMessage({
         type: 'error',
-        text: error?.message || t('registeredDetails.invalid'),
+        text: error?.response?.data?.message || error?.message || t('registeredDetails.invalid'),
       });
     } finally {
       setLoading(false);

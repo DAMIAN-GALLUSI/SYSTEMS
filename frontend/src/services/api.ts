@@ -47,6 +47,14 @@ export const dashboardAPI = {
     api.get('/dashboard/profit-loss', { params: { days } }),
 };
 
+// Registered Lines endpoints
+export const registeredLinesAPI = {
+  getAll: () => api.get('/registered-lines'),
+  
+  save: (lines: Array<{ serviceType: string; lineCard: string }>) =>
+    api.post('/registered-lines', { lines }),
+};
+
 // Report endpoints
 export const reportAPI = {
   generate: (params?: any) => api.get('/reports/generate', { params }),
