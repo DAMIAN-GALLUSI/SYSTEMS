@@ -38,7 +38,22 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const [days, setDays] = useState(30);
 
   const latestProfitLossPoint = profitLossData.length > 0 ? profitLossData[profitLossData.length - 1] : null;
-  const visibleProfitLoss = latestProfitLossPoint?.profit ?? dashboardData?.summary?.current_profit_loss ?? 0;
+  
+  // Calculate today's profit/loss by comparing with previous day
+  const getTodayProfitLoss = () => {
+    if (latestProfitLossPoint) {
+      return latestProfitLossPoint.profit;
+    }
+    
+    // Fallback: calculate from saved data if available
+    if (dashboardData?.summary?.current_profit_loss !== undefined) {
+      return dashboardData.summary.current_profit_loss;
+    }
+    
+    return 0;
+  };
+  
+  const visibleProfitLoss = getTodayProfitLoss();
 
   useEffect(() => {
     loadLocalData();
@@ -101,7 +116,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         const day = dailyMap.get(dayKey);
         if (!day) continue;
 
-        const profitOrLoss = day.circulating - previousCirculating - day.consumption;
+        const profitOrLoss = day.circulating - previousCirculating;
         trendData.push({
           date: dayKey,
           profit: profitOrLoss,
@@ -110,6 +125,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         previousCirculating = day.circulating;
       }
 
+      // Ensure trend data is set even if empty
       setProfitLossData(trendData);
 
       // Set dashboard data with services

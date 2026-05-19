@@ -637,11 +637,10 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
 
     autoTable(doc, {
       startY: 70,
-      head: [['Date', 'Service', 'Type', 'Amount', 'Cash in Hand', 'Employee', 'Description']],
+      head: [['Date', 'Service', 'Amount', 'Cash in Hand', 'Employee', 'Description']],
       body: reportData.transactions.map((transaction) => [
         formatDate(transaction.createdAt),
         getServiceInfo(transaction.serviceType).name,
-        transaction.transactionType,
         formatCurrency(transaction.amount),
         formatCurrency(transaction.cashInHand),
         transaction.employeeName || 'N/A',
@@ -820,6 +819,33 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                       <p className="daily-circulation-line">
                         <strong>{t('reports.currentCirculation')}</strong>{' '}
                         {formatCurrency(getDailyCirculationAmount(dailyBalancingRows))}
+                      </p>
+                      <p className="daily-profitloss-line">
+                        <strong>
+                          {(() => {
+                            // Get today's circulation
+                            const todayCirculation = getDailyCirculationAmount(dailyBalancingRows);
+                            
+                            // Get all rows to find yesterday's data
+                            const allDailyRows = reportData ? getDailyBalancingRows(reportData.transactions) : [];
+                            const selectedDate = loadedDailyDate;
+                            const selectedDateObj = new Date(`${selectedDate}T00:00:00`);
+                            const yesterdayDateObj = new Date(selectedDateObj);
+                            yesterdayDateObj.setDate(yesterdayDateObj.getDate() - 1);
+                            const yesterdayDateStr = yesterdayDateObj.toISOString().slice(0, 10);
+                            
+                            // Get yesterday's rows
+                            const yesterdayRows = allDailyRows.filter(row => row.dayKey === yesterdayDateStr);
+                            const yesterdayCirculation = yesterdayRows.length > 0 ? getDailyCirculationAmount(yesterdayRows) : 0;
+                            
+                            // Calculate profit/loss as today - yesterday
+                            const profitLoss = todayCirculation - yesterdayCirculation;
+                            
+                            return profitLoss >= 0 
+                              ? `Today there is a profit: ${formatCurrency(profitLoss)}`
+                              : `Today there is a loss: ${formatCurrency(Math.abs(profitLoss))}`;
+                          })()}
+                        </strong>
                       </p>
                       <p className="daily-notes-line">
                         <strong>{t('reports.notesLabel')}</strong> {getDisplayNotes(dailyBalancingRows)}
@@ -1130,61 +1156,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                     </div>
                   )}
 
-                  {period.key === 'day' && (
-                    <div className="transactions-table-section">
-                      <h3>{period.title} Transactions</h3>
-                      <div className="table-container">
-                        <table className="transactions-table">
-                          <thead>
-                            <tr>
-                              <th>Date</th>
-                              <th>Service</th>
-                              <th>Type</th>
-                              <th>Amount</th>
-                              <th>Cash in Hand</th>
-                              <th>Employee</th>
-                              <th>Description</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {reportData.transactions.length === 0 ? (
-                              <tr>
-                                <td colSpan={7} className="empty-row">No transactions in this period.</td>
-                              </tr>
-                            ) : (
-                              reportData.transactions.map((transaction) => (
-                                <tr key={`${period.key}-${transaction.id}-${transaction.createdAt}`}>
-                                  <td>{formatDate(transaction.createdAt)}</td>
-                                  <td>
-                                    <span
-                                      className="service-badge"
-                                      style={{
-                                        backgroundColor: getServiceInfo(transaction.serviceType).color,
-                                        color: getServiceInfo(transaction.serviceType).textColor,
-                                      }}
-                                    >
-                                      {getServiceInfo(transaction.serviceType).name}
-                                    </span>
-                                  </td>
-                                  <td>
-                                    <span className={`type-badge ${transaction.transactionType}`}>
-                                      {transaction.transactionType}
-                                    </span>
-                                  </td>
-                                  <td className={transaction.transactionType === 'deposit' ? 'positive' : 'negative'}>
-                                    {formatCurrency(transaction.amount)}
-                                  </td>
-                                  <td>{formatCurrency(transaction.cashInHand)}</td>
-                                  <td>{transaction.employeeName || 'N/A'}</td>
-                                  <td>{transaction.description || '-'}</td>
-                                </tr>
-                              ))
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
+                  {/* Day transactions table removed — keep only the saved daily-balancing table above */}
                 </>
               ) : (
                 <div className="empty-report">No data loaded for this period yet.</div>

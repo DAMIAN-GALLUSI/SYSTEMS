@@ -396,6 +396,16 @@
   color: #1f2937;
 }
 
+.daily-profitloss-line {
+  margin: 0 0 0.9rem;
+  color: #1f2937;
+  padding: 0.5rem 0.75rem;
+  background: #f0fdf4;
+  border-left: 3px solid #22c55e;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
 .daily-notes-line {
   margin: 0 0 0.9rem;
   color: #1f2937;
