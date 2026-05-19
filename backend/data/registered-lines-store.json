@@ -1,28 +1,76 @@
 {
   "lines": [
     {
-      "id": "2-1778835938382-0",
+      "id": "2-1779177952244-0",
       "userId": 2,
+      "serviceType": "halotel",
+      "lineCard": "342",
+      "createdAt": "2026-05-19T08:05:52.244Z",
+      "updatedAt": "2026-05-19T08:05:52.244Z"
+    },
+    {
+      "id": "3-1779178793825-0",
+      "userId": 3,
       "serviceType": "vodacom",
-      "lineCard": "1234",
-      "createdAt": "2026-05-15T09:05:38.382Z",
-      "updatedAt": "2026-05-15T09:05:38.382Z"
+      "lineCard": "123",
+      "createdAt": "2026-05-19T08:19:53.825Z",
+      "updatedAt": "2026-05-19T08:19:53.825Z"
     },
     {
-      "id": "2-1778835938382-1",
-      "userId": 2,
+      "id": "3-1779178793825-1",
+      "userId": 3,
       "serviceType": "tigo",
-      "lineCard": "4657",
-      "createdAt": "2026-05-15T09:05:38.382Z",
-      "updatedAt": "2026-05-15T09:05:38.382Z"
+      "lineCard": "1234",
+      "createdAt": "2026-05-19T08:19:53.825Z",
+      "updatedAt": "2026-05-19T08:19:53.825Z"
     },
     {
-      "id": "2-1778835938382-2",
-      "userId": 2,
+      "id": "3-1779178793825-2",
+      "userId": 3,
+      "serviceType": "halotel",
+      "lineCard": "2345",
+      "createdAt": "2026-05-19T08:19:53.825Z",
+      "updatedAt": "2026-05-19T08:19:53.825Z"
+    },
+    {
+      "id": "3-1779178793825-3",
+      "userId": 3,
       "serviceType": "airtel",
-      "lineCard": "12345",
-      "createdAt": "2026-05-15T09:05:38.382Z",
-      "updatedAt": "2026-05-15T09:05:38.382Z"
+      "lineCard": "123456",
+      "createdAt": "2026-05-19T08:19:53.825Z",
+      "updatedAt": "2026-05-19T08:19:53.825Z"
+    },
+    {
+      "id": "3-1779178793825-4",
+      "userId": 3,
+      "serviceType": "lipa_namba_halotel",
+      "lineCard": "1234",
+      "createdAt": "2026-05-19T08:19:53.825Z",
+      "updatedAt": "2026-05-19T08:19:53.825Z"
+    },
+    {
+      "id": "3-1779178793825-5",
+      "userId": 3,
+      "serviceType": "lipa_namba_tigo",
+      "lineCard": "12348",
+      "createdAt": "2026-05-19T08:19:53.825Z",
+      "updatedAt": "2026-05-19T08:19:53.825Z"
+    },
+    {
+      "id": "3-1779178793825-6",
+      "userId": 3,
+      "serviceType": "lipa_namba_vodacom",
+      "lineCard": "1257",
+      "createdAt": "2026-05-19T08:19:53.825Z",
+      "updatedAt": "2026-05-19T08:19:53.825Z"
+    },
+    {
+      "id": "3-1779178793825-7",
+      "userId": 3,
+      "serviceType": "lipa_namba_airtel",
+      "lineCard": "23468",
+      "createdAt": "2026-05-19T08:19:53.825Z",
+      "updatedAt": "2026-05-19T08:19:53.825Z"
     }
   ]
 }

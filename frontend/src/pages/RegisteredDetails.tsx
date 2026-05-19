@@ -119,35 +119,40 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
       return;
     }
 
-    try {
-      const lines = entries.map((entry) => ({
+    const lines = entries.map((entry) => ({
+      serviceType: resolveServiceType(entry.serviceInput) as ServiceType,
+      lineCard: entry.lineCard.trim(),
+    }));
+
+    const payload: SavedRegisteredDetails = {
+      savedAt: new Date().toISOString(),
+      entries: entries.map((entry) => ({
         serviceType: resolveServiceType(entry.serviceInput) as ServiceType,
+        serviceName: entry.serviceInput.trim(),
         lineCard: entry.lineCard.trim(),
-      }));
+      })),
+    };
 
-      // Save to backend
-      await registeredLinesAPI.save(lines);
-
-      // Also save to localStorage as fallback
-      const payload: SavedRegisteredDetails = {
-        savedAt: new Date().toISOString(),
-        entries: entries.map((entry) => ({
-          serviceType: resolveServiceType(entry.serviceInput) as ServiceType,
-          serviceName: entry.serviceInput.trim(),
-          lineCard: entry.lineCard.trim(),
-        })),
-      };
+    try {
       localStorage.setItem(REGISTERED_DETAILS_STORAGE_KEY, JSON.stringify(payload));
-
-      setMessage({ type: 'success', text: t('registeredDetails.saved') });
-      window.setTimeout(() => {
-        navigate('/daily-balancing');
-      }, 1000);
-    } catch (error: any) {
+    } catch (storageError: any) {
+      setLoading(false);
       setMessage({
         type: 'error',
-        text: error?.response?.data?.message || error?.message || t('registeredDetails.invalid'),
+        text: storageError?.message || t('registeredDetails.invalid'),
       });
+      return;
+    }
+
+    setMessage({ type: 'success', text: t('registeredDetails.saved') });
+    window.setTimeout(() => {
+      navigate('/daily-balancing');
+    }, 1000);
+
+    try {
+      await registeredLinesAPI.save(lines);
+    } catch (error: any) {
+      console.warn('Registered lines backend sync failed, but local save succeeded:', error);
     } finally {
       setLoading(false);
     }
