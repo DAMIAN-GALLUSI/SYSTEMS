@@ -19,6 +19,73 @@ const parseDate = (value: any) => {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
+const parseDescription = (description?: string) => {
+  if (!description) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(description);
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const parseNumber = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const getDailyBalancingCirculation = (rows: any[]) => {
+  if (rows.length < 1) {
+    return 0;
+  }
+
+  const sortedRows = [...rows].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  const cashInHand = parseNumber(sortedRows[0].cash_in_hand);
+  const lineAmountsTotal = sortedRows.reduce((sum: number, row: any) => sum + parseNumber(row.amount), 0);
+
+  return cashInHand + lineAmountsTotal;
+};
+
+const getDailyBalancingProfit = (rows: any[]) => {
+  const dailyRows = rows.filter((row) => parseDescription(row.description)?.mode === 'daily-balancing-entry');
+
+  if (dailyRows.length < 1) {
+    return null;
+  }
+
+  const dayTotals = new Map<string, any[]>();
+
+  dailyRows.forEach((row) => {
+    const dayKey = new Date(row.created_at).toISOString().slice(0, 10);
+    const current = dayTotals.get(dayKey) || [];
+    current.push(row);
+    dayTotals.set(dayKey, current);
+  });
+
+  const orderedDays = Array.from(dayTotals.entries())
+    .map(([dayKey, dayRows]) => {
+      const sortedRows = [...dayRows].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+      return {
+        dayKey,
+        circulation: getDailyBalancingCirculation(sortedRows),
+      };
+    })
+    .sort((a, b) => a.dayKey.localeCompare(b.dayKey));
+
+  if (orderedDays.length < 2) {
+    return 0;
+  }
+
+  const latest = orderedDays[orderedDays.length - 1];
+  const previous = orderedDays[orderedDays.length - 2];
+
+  return latest.circulation - previous.circulation;
+};
+
 const buildSummary = (rows: any[]) => {
   const totalDeposits = rows
     .filter((t: any) => t.transaction_type === 'deposit')
@@ -27,11 +94,13 @@ const buildSummary = (rows: any[]) => {
     .filter((t: any) => t.transaction_type === 'withdraw')
     .reduce((sum: number, t: any) => sum + parseFloat(String(t.amount)), 0);
 
+  const dailyBalancingProfit = getDailyBalancingProfit(rows);
+
   return {
     totalTransactions: rows.length,
     totalDeposits,
     totalWithdrawals,
-    netProfit: totalDeposits - totalWithdrawals,
+    netProfit: dailyBalancingProfit !== null ? dailyBalancingProfit : totalDeposits - totalWithdrawals,
   };
 };
 

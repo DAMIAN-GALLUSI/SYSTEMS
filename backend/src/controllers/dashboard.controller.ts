@@ -219,8 +219,8 @@ export const getDashboardData = async (req: AuthRequest, res: Response) => {
       ? latestSnapshot.circulatingTotal
       : services.reduce((sum, service) => sum + parseNumber(service.amount), 0);
 
-    const currentProfitLoss = latestSnapshot && previousSnapshot
-      ? latestSnapshot.circulatingTotal - previousSnapshot.circulatingTotal
+    const currentProfitLoss = latestSnapshot
+      ? latestSnapshot.profitOrLoss
       : 0;
 
     res.json({

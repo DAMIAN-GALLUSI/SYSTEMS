@@ -198,9 +198,52 @@ const getDailyCirculationAmount = (rows: DailyBalancingReportRow[]) => {
     return 0;
   }
 
-  const lineAmountsTotal = rows.reduce((sum, row) => sum + row.amount, 0);
-  const cashInHand = rows[0].cashInHand;
+  const sortedRows = [...rows].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const lineAmountsTotal = sortedRows.reduce((sum, row) => sum + row.amount, 0);
+  const cashInHand = sortedRows[0].cashInHand;
   return cashInHand + lineAmountsTotal;
+};
+
+const getDailyProfitAmount = (rows: DailyBalancingReportRow[], currentDayKey?: string) => {
+  if (rows.length < 1) {
+    return 0;
+  }
+
+  const grouped = new Map<string, DailyBalancingReportRow[]>();
+
+  rows.forEach((row) => {
+    const current = grouped.get(row.dayKey) || [];
+    current.push(row);
+    grouped.set(row.dayKey, current);
+  });
+
+  const orderedDays = Array.from(grouped.entries())
+    .map(([dayKey, dayRows]) => ({
+      dayKey,
+      circulation: getDailyCirculationAmount(dayRows),
+    }))
+    .sort((a, b) => a.dayKey.localeCompare(b.dayKey));
+
+  if (orderedDays.length < 2) {
+    return 0;
+  }
+
+  const selectedIndex = currentDayKey
+    ? orderedDays.findIndex((day) => day.dayKey === currentDayKey)
+    : orderedDays.length - 1;
+
+  if (selectedIndex < 1) {
+    return 0;
+  }
+
+  const current = orderedDays[selectedIndex];
+  const previous = orderedDays[selectedIndex - 1];
+
+  if (!current || !previous) {
+    return 0;
+  }
+
+  return current.circulation - previous.circulation;
 };
 
 const getDisplayNotes = (rows: DailyBalancingReportRow[]) => {
@@ -410,6 +453,22 @@ const getDayRangeFromInput = (dateValue: string) => {
   };
 };
 
+const getComparisonRangeFromInput = (dateValue: string) => {
+  const dayRange = getDayRangeFromInput(dateValue);
+  if (!dayRange) {
+    return null;
+  }
+
+  const start = new Date(`${dateValue}T00:00:00`);
+  start.setDate(start.getDate() - 1);
+  start.setHours(0, 0, 0, 0);
+
+  return {
+    startDate: start.toISOString(),
+    endDate: dayRange.endDate,
+  };
+};
+
 const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
   const { t } = useLanguage();
   const periods = buildPeriods(t);
@@ -492,7 +551,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
 
   const loadSelectedDailyReport = async (dateValue?: string) => {
     const targetDate = dateValue || selectedDailyDate;
-    const range = getDayRangeFromInput(targetDate);
+    const range = getComparisonRangeFromInput(targetDate);
     if (!range) {
       setError(t('reports.invalidDate'));
       return;
@@ -539,11 +598,14 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
           const parsed = JSON.parse(raw) as any;
           const history = Array.isArray(parsed) ? parsed : [parsed];
           
-          // Find entries for the selected date
+          // Find entries for the selected date and the day before it so profit can be compared correctly.
           const targetDayKey = targetDate;
+          const previousDate = new Date(`${targetDate}T00:00:00`);
+          previousDate.setDate(previousDate.getDate() - 1);
+          const previousDayKey = previousDate.toISOString().slice(0, 10);
           const dailyEntries = history.filter((entry) => {
             const dayKey = entry.savedDayKey || new Date(entry.savedAt).toISOString().slice(0, 10);
-            return dayKey === targetDayKey;
+            return dayKey === targetDayKey || dayKey === previousDayKey;
           });
 
           if (dailyEntries.length === 0) {
@@ -587,7 +649,11 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
               totalTransactions: transactions.length,
               totalDeposits: 0,
               totalWithdrawals: transactions.reduce((sum, t) => sum + t.amount, 0),
-              netProfit: 0,
+              netProfit: (() => {
+                const allDailyRows = getDailyBalancingRows(transactions);
+
+                return getDailyProfitAmount(allDailyRows, targetDayKey);
+              })(),
             },
             generatedAt: new Date().toISOString(),
           };
@@ -823,23 +889,8 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
                       <p className="daily-profitloss-line">
                         <strong>
                           {(() => {
-                            // Get today's circulation
-                            const todayCirculation = getDailyCirculationAmount(dailyBalancingRows);
-                            
-                            // Get all rows to find yesterday's data
                             const allDailyRows = reportData ? getDailyBalancingRows(reportData.transactions) : [];
-                            const selectedDate = loadedDailyDate;
-                            const selectedDateObj = new Date(`${selectedDate}T00:00:00`);
-                            const yesterdayDateObj = new Date(selectedDateObj);
-                            yesterdayDateObj.setDate(yesterdayDateObj.getDate() - 1);
-                            const yesterdayDateStr = yesterdayDateObj.toISOString().slice(0, 10);
-                            
-                            // Get yesterday's rows
-                            const yesterdayRows = allDailyRows.filter(row => row.dayKey === yesterdayDateStr);
-                            const yesterdayCirculation = yesterdayRows.length > 0 ? getDailyCirculationAmount(yesterdayRows) : 0;
-                            
-                            // Calculate profit/loss as today - yesterday
-                            const profitLoss = todayCirculation - yesterdayCirculation;
+                            const profitLoss = getDailyProfitAmount(allDailyRows, loadedDailyDate);
                             
                             return profitLoss >= 0 
                               ? `Today there is a profit: ${formatCurrency(profitLoss)}`

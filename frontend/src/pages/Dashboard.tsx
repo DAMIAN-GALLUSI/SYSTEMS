@@ -110,13 +110,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       // Create profit/loss trend
       const sortedDays = Array.from(dailyMap.keys()).sort();
       const trendData: ProfitLossData[] = [];
-      let previousCirculating = 0;
+      let previousCirculating: number | null = null;
 
       for (const dayKey of sortedDays) {
         const day = dailyMap.get(dayKey);
         if (!day) continue;
 
-        const profitOrLoss = day.circulating - previousCirculating;
+        const profitOrLoss = previousCirculating === null ? 0 : day.circulating - previousCirculating;
         trendData.push({
           date: dayKey,
           profit: profitOrLoss,
