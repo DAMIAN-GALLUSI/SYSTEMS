@@ -79,6 +79,30 @@
   color: #ef4444;
 }
 
+.summary-formula {
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.summary-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  color: #334155;
+  overflow-wrap: anywhere;
+}
+
+.summary-breakdown strong {
+  font-size: 1rem;
+}
+
 .summary-inline-result {
   margin-top: 0.75rem;
   font-size: clamp(0.9rem, 2.2vw, 1rem);

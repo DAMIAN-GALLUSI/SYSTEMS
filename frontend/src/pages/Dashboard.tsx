@@ -200,7 +200,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   };
 
   const totalCash = dashboardData?.summary?.total_circulating || 0;
-
   const netProfit = visibleProfitLoss;
 
   const netProfitLabel = netProfit >= 0 ? t('dashboard.todayThereIsProfit') : t('dashboard.todayThereIsLoss');
