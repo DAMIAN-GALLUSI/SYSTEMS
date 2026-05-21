@@ -514,7 +514,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
     setError('');
 
     try {
-      const periodEntries = await Promise.all(
+      const periodEntries = await Promise.allSettled(
         periods.filter((period) => period.key !== 'day').map(async (period) => {
           const range = getPeriodRange(period.key);
           const params: any = {
@@ -538,11 +538,24 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
         year: null,
       };
 
-      periodEntries.forEach(([key, value]) => {
-        nextState[key] = value;
+      let successfulLoads = 0;
+
+      periodEntries.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          const [key, value] = result.value;
+          nextState[key] = value;
+          successfulLoads += 1;
+          return;
+        }
+
+        console.warn('Failed to load report period:', result.reason);
       });
 
       setReportsByPeriod(nextState);
+
+      if (successfulLoads === 0 && !nextState.day) {
+        setError(t('reports.generateError'));
+      }
     } catch (error) {
       console.error('Failed to generate report:', error);
       setError(t('reports.generateError'));
@@ -741,6 +754,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
 
   const monthlyBalancingGroups =
     reportsByPeriod.month ? getMonthlyBalancingGroups(getDailyBalancingRows(reportsByPeriod.month.transactions)) : [];
+  const hasVisibleReportData = Object.values(reportsByPeriod).some((report) => Boolean(report));
 
   return (
     <div className="reports-container">
@@ -780,7 +794,7 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
           </div>
         </div>
 
-        {error && <div className="report-error">{error}</div>}
+        {error && !hasVisibleReportData && <div className="report-error">{error}</div>}
 
         <div className="report-sections-nav">
           <p className="nav-label">{t('reports.jumpToReport')}</p>
