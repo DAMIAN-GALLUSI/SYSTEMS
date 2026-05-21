@@ -35,6 +35,7 @@ interface DailyBalancingReportRow {
   id: number;
   date: string;
   dayKey: string;
+  serviceType: string;
   serviceName: string;
   lineCard: string;
   amount: number;
@@ -139,6 +140,7 @@ const getDailyBalancingRows = (transactions: Transaction[]): DailyBalancingRepor
         id: transaction.id,
         date: transaction.createdAt,
         dayKey: new Date(transaction.createdAt).toISOString().slice(0, 10),
+        serviceType: transaction.serviceType as string,
         serviceName: getServiceInfo(transaction.serviceType).name,
         lineCard: metadata.lineCard || '-',
         amount: transaction.amount,
@@ -622,10 +624,16 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
           dailyEntries.forEach((entry, idx) => {
             if (Array.isArray(entry.entries)) {
               entry.entries.forEach((lineEntry: any, lineIdx: number) => {
+                const serviceTypeOfLine = lineEntry.serviceType || 'vodacom';
+                // Apply serviceType filter when present (local fallback)
+                if (filters.serviceType && filters.serviceType !== '' && serviceTypeOfLine !== filters.serviceType) {
+                  return;
+                }
+
                 transactions.push({
                   id: idx * 1000 + lineIdx,
                   userId: 0,
-                  serviceType: lineEntry.serviceType || 'vodacom',
+                  serviceType: serviceTypeOfLine,
                   amount: Number(lineEntry.amount) || 0,
                   transactionType: 'withdraw',
                   cashInHand: Number(entry.cashInHand) || 0,
@@ -806,14 +814,24 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
 
         {periods.map((period) => {
           const reportData = reportsByPeriod[period.key];
-          const dailyBalancingRows = reportData ? getLatestDailyBalancingRows(getDailyBalancingRows(reportData.transactions)) : [];
+            const allDailyBalancingRows = reportData ? getDailyBalancingRows(reportData.transactions) : [];
+            const filteredDailyBalancingRows = filters.serviceType
+              ? allDailyBalancingRows.filter((r) => r.serviceType === filters.serviceType)
+              : allDailyBalancingRows;
+
+            const dailyBalancingRows =
+              period.key === 'day'
+                ? getLatestDailyBalancingRows(filteredDailyBalancingRows).filter((row) => row.dayKey === loadedDailyDate)
+                : reportData
+                  ? getLatestDailyBalancingRows(filteredDailyBalancingRows)
+                  : [];
           const weeklyBalancingGroups =
             period.key === 'week' && reportData
-              ? getWeeklyBalancingGroups(getDailyBalancingRows(reportData.transactions))
+              ? getWeeklyBalancingGroups(filteredDailyBalancingRows)
               : [];
           const yearMonthSummaries =
             period.key === 'year' && reportData
-              ? getYearMonthSummaries(getLatestDailyBalancingRows(getDailyBalancingRows(reportData.transactions)))
+              ? getYearMonthSummaries(getLatestDailyBalancingRows(filteredDailyBalancingRows))
               : [];
 
           const sectionKey = period.key === 'day' ? 'daily-balance' : period.key === 'week' ? 'weekly-balance' : period.key === 'month' ? 'monthly-balance' : 'yearly-summary';
