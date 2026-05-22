@@ -4,27 +4,27 @@ import { useLanguage } from '../contexts/LanguageContext';
 import './Auth.css';
 import './PublicInfo.css';
 
-const benefitItems = [
-  {
-    title: 'Faster Daily Balancing',
-    description: 'Capture all service balances quickly with a clear end-of-day process.'
-  },
-  {
-    title: 'Better Visibility',
-    description: 'Owners and employees can view operational data based on role permissions.'
-  },
-  {
-    title: 'Reliable Reporting',
-    description: 'Generate records that help track performance and support business decisions.'
-  },
-  {
-    title: 'Single Workspace',
-    description: 'Keep services, transactions, and profit/loss trends in one connected system.'
-  }
-];
-
 const Benefits: React.FC = () => {
   const { t } = useLanguage();
+
+  const benefitItems = [
+    {
+      title: t('public.benefits.items.fasterDailyBalancing.title'),
+      description: t('public.benefits.items.fasterDailyBalancing.description'),
+    },
+    {
+      title: t('public.benefits.items.betterVisibility.title'),
+      description: t('public.benefits.items.betterVisibility.description'),
+    },
+    {
+      title: t('public.benefits.items.reliableReporting.title'),
+      description: t('public.benefits.items.reliableReporting.description'),
+    },
+    {
+      title: t('public.benefits.items.singleWorkspace.title'),
+      description: t('public.benefits.items.singleWorkspace.description'),
+    },
+  ];
 
   return (
     <div className="auth-page">

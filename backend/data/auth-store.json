@@ -53,6 +53,15 @@
       "role": "employee",
       "created_at": "2026-05-05T07:15:48.972Z",
       "updated_at": "2026-05-05T07:15:48.972Z"
+    },
+    {
+      "id": 7,
+      "email": "vscode_test@example.com",
+      "password": "$2a$10$OzBw037e3kstjFRQQ5lmveBpg8aWo7fiK7GkXHx64rgsdwanIaAcK",
+      "full_name": "VSCode Test",
+      "role": "employee",
+      "created_at": "2026-05-22T07:58:46.659Z",
+      "updated_at": "2026-05-22T07:58:46.659Z"
     }
   ]
 }

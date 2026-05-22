@@ -86,6 +86,24 @@ const translations = {
         title: 'Why This System Helps Your Business',
         description:
           'Built to reduce manual work, improve control, and make mobile money operations easier for both owners and employees.',
+        items: {
+          fasterDailyBalancing: {
+            title: 'Faster Daily Balancing',
+            description: 'Capture all service balances quickly with a clear end-of-day process.',
+          },
+          betterVisibility: {
+            title: 'Better Visibility',
+            description: 'Owners and employees can view operational data based on role permissions.',
+          },
+          reliableReporting: {
+            title: 'Reliable Reporting',
+            description: 'Generate records that help track performance and support business decisions.',
+          },
+          singleWorkspace: {
+            title: 'Single Workspace',
+            description: 'Keep services, transactions, and profit/loss trends in one connected system.',
+          },
+        },
       },
     },
     preferences: {
@@ -95,6 +113,17 @@ const translations = {
       notifications: 'Notifications',
       smsAlerts: 'SMS Alerts',
       emailNotifications: 'Email Notifications',
+      languageSummary: 'Choose the display language for the app.',
+      languagePrompt: 'Choose English or Swahili.',
+      themeSummary: 'Switch between light and dark mode.',
+      lightMode: 'Light Mode',
+      darkMode: 'Dark Mode',
+      lightModeDescription: 'Bright and clean interface.',
+      darkModeDescription: 'Low-light friendly view.',
+      notificationSummary: 'Fast alerts for loss updates and account activity.',
+      smsDescription: 'Get quick text alerts when there is a loss.',
+      emailDescription: 'Receive email updates for activity and losses.',
+      notificationHelper: 'These notifications help you get loss results faster when something changes.',
       saveSuccess: 'Language updated successfully.',
     },
     profile: {
@@ -326,6 +355,24 @@ const translations = {
         title: 'Kwa Nini Mfumo Huu Unasaidia Biashara Yako',
         description:
           'Umejengwa kupunguza kazi za mikono, kuboresha udhibiti, na kufanya shughuli za malipo ya simu ziwe rahisi kwa wamiliki na wafanyakazi.',
+        items: {
+          fasterDailyBalancing: {
+            title: 'Uwiano wa Kila Siku kwa Haraka',
+            description: 'Rekodi uwiano wa huduma zote kwa haraka kupitia mchakato ulio wazi wa mwisho wa siku.',
+          },
+          betterVisibility: {
+            title: 'Uwazi Bora',
+            description: 'Wamiliki na wafanyakazi wanaweza kuona data ya uendeshaji kulingana na ruhusa za wadhifa.',
+          },
+          reliableReporting: {
+            title: 'Ripoti Zinazoaminika',
+            description: 'Tengeneza rekodi zinazosaidia kufuatilia utendaji na kuunga mkono maamuzi ya biashara.',
+          },
+          singleWorkspace: {
+            title: 'Nafasi Moja ya Kazi',
+            description: 'Hifadhi huduma, miamala, na mwenendo wa faida/hasara katika mfumo mmoja uliounganishwa.',
+          },
+        },
       },
     },
     preferences: {
@@ -335,6 +382,17 @@ const translations = {
       notifications: 'Arifa',
       smsAlerts: 'Arifa za SMS',
       emailNotifications: 'Arifa za Barua pepe',
+      languageSummary: 'Chagua lugha ya kuonyesha ya programu.',
+      languagePrompt: 'Chagua Kiingereza au Kiswahili.',
+      themeSummary: 'Badili kati ya mandhari ya mwanga na giza.',
+      lightMode: 'Njia ya Mwanga',
+      darkMode: 'Njia ya Giza',
+      lightModeDescription: 'Kiolesura chenye mwangaza na safi.',
+      darkModeDescription: 'Mwonekano unaofaa mazingira yenye mwanga hafifu.',
+      notificationSummary: 'Arifa za haraka kuhusu mabadiliko ya hasara na shughuli za akaunti.',
+      smsDescription: 'Pata arifa za haraka za maandishi panapokuwa na hasara.',
+      emailDescription: 'Pokea masasisho ya barua pepe kuhusu shughuli na hasara.',
+      notificationHelper: 'Arifa hizi hukusaidia kupata matokeo ya hasara haraka kitu kinapobadilika.',
       saveSuccess: 'Lugha imesasishwa kwa mafanikio.',
     },
     profile: {

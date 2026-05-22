@@ -134,14 +134,14 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
         <div className="preferences-panel">
           <div className="preferences-panel-header">
             <h2>{t('preferences.title')}</h2>
-            <p>{t('preferences.language')}, {t('preferences.themeMode')}, and alert controls for faster updates</p>
+            <p>{t('preferences.languageSummary')}</p>
           </div>
 
           <div className="preferences-section-group">
             <div className="preferences-subsection">
               <div className="preferences-subsection-header">
                 <h3>{t('preferences.language')}</h3>
-                <p>Choose English or Swahili.</p>
+                <p>{t('preferences.languagePrompt')}</p>
               </div>
 
               <div className="language-dropdown" ref={languageMenuRef}>
@@ -181,7 +181,7 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
             <div className="preferences-subsection">
               <div className="preferences-subsection-header">
                 <h3>{t('preferences.themeMode')}</h3>
-                <p>Switch between light and dark mode.</p>
+                <p>{t('preferences.themeSummary')}</p>
               </div>
 
               <div className="theme-mode-grid" role="radiogroup" aria-label="Theme mode">
@@ -193,9 +193,11 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
                     aria-pressed={themeMode === mode}
                     onClick={() => setThemeMode(mode)}
                   >
-                    <span className="theme-mode-label">{mode === 'light' ? 'Light Mode' : 'Dark Mode'}</span>
+                    <span className="theme-mode-label">
+                      {mode === 'light' ? t('preferences.lightMode') : t('preferences.darkMode')}
+                    </span>
                     <span className="theme-mode-note">
-                      {mode === 'light' ? 'Bright and clean interface.' : 'Low-light friendly view.'}
+                      {mode === 'light' ? t('preferences.lightModeDescription') : t('preferences.darkModeDescription')}
                     </span>
                   </button>
                 ))}
@@ -205,14 +207,14 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
             <div className="preferences-subsection">
               <div className="preferences-subsection-header">
                 <h3>{t('preferences.notifications')}</h3>
-                <p>Fast alerts for loss updates and account activity.</p>
+                <p>{t('preferences.notificationSummary')}</p>
               </div>
 
               <div className="notification-settings-list">
                 <label className="notification-setting-row">
                   <span>
                     <strong>{t('preferences.smsAlerts')}</strong>
-                    <small>Get quick text alerts when there is a loss.</small>
+                    <small>{t('preferences.smsDescription')}</small>
                   </span>
                   <button
                     type="button"
@@ -227,7 +229,7 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
                 <label className="notification-setting-row">
                   <span>
                     <strong>{t('preferences.emailNotifications')}</strong>
-                    <small>Receive email updates for activity and losses.</small>
+                    <small>{t('preferences.emailDescription')}</small>
                   </span>
                   <button
                     type="button"
@@ -241,7 +243,7 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
               </div>
 
               <p className="notification-helper-text">
-                These notifications help you get loss results faster when something changes.
+                {t('preferences.notificationHelper')}
               </p>
             </div>
           </div>
