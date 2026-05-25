@@ -10,6 +10,7 @@ interface ProfileProps {
 const PROFILE_STORAGE_KEY = 'user-profile-preferences';
 const PROFILE_PHOTO_STORAGE_KEY = 'user-profile-photo';
 const ACCOUNT_STATUS_STORAGE_KEY = 'account-status';
+const PROFILE_PHOTO_UPDATED_EVENT = 'user-profile-photo-updated';
 
 type AccountStatus = 'Active' | 'Suspended';
 
@@ -169,6 +170,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
     setProfilePhoto(dataUrl);
     localStorage.setItem(PROFILE_PHOTO_STORAGE_KEY, dataUrl);
+    window.dispatchEvent(new Event(PROFILE_PHOTO_UPDATED_EVENT));
     setMessage(t('profile.photoUpdated'));
     stopCameraStream();
   };
@@ -192,6 +194,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
       setProfilePhoto(result);
       localStorage.setItem(PROFILE_PHOTO_STORAGE_KEY, result);
+      window.dispatchEvent(new Event(PROFILE_PHOTO_UPDATED_EVENT));
       setMessage(t('profile.photoUpdated'));
     };
     reader.readAsDataURL(file);
@@ -202,6 +205,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
   const handleDeleteProfilePhoto = () => {
     setProfilePhoto(null);
     localStorage.removeItem(PROFILE_PHOTO_STORAGE_KEY);
+    window.dispatchEvent(new Event(PROFILE_PHOTO_UPDATED_EVENT));
     setMessage(t('profile.photoDeleted'));
   };
 

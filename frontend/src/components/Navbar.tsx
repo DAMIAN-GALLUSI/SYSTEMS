@@ -7,21 +7,44 @@ interface NavbarProps {
   onLogout: () => void;
 }
 
+const PROFILE_PHOTO_STORAGE_KEY = 'user-profile-photo';
+const PROFILE_PHOTO_UPDATED_EVENT = 'user-profile-photo-updated';
+
 const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
   const location = useLocation();
   const { t } = useLanguage();
 
   const [open, setOpen] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
+  const loadProfilePhoto = () => {
+    const savedProfilePhoto = localStorage.getItem(PROFILE_PHOTO_STORAGE_KEY);
+    setProfilePhoto(savedProfilePhoto);
+  };
+
   useEffect(() => {
+    loadProfilePhoto();
+
     function handleClickOutside(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     }
+
+    function handleProfilePhotoUpdate() {
+      loadProfilePhoto();
+    }
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('storage', handleProfilePhotoUpdate);
+    window.addEventListener(PROFILE_PHOTO_UPDATED_EVENT, handleProfilePhotoUpdate);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('storage', handleProfilePhotoUpdate);
+      window.removeEventListener(PROFILE_PHOTO_UPDATED_EVENT, handleProfilePhotoUpdate);
+    };
   }, []);
 
   return (
@@ -65,8 +88,11 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
               aria-expanded={open}
               aria-haspopup="true"
             >
-              <span className="account-icon">👤</span>
-              <span className="account-label" id="t-navbar-account">{t('navbar.account')}</span>
+              {profilePhoto ? (
+                <img className="account-avatar" src={profilePhoto} alt="Profile" />
+              ) : (
+                <span className="account-icon">👤</span>
+              )}
             </button>
             {open && (
               <div className="account-dropdown" role="menu">
