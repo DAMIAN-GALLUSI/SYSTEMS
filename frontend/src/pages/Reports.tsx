@@ -399,6 +399,24 @@ const getYearMonthSummaries = (rows: DailyBalancingReportRow[]): YearMonthSummar
   return monthlySummaries;
 };
 
+const formatPdfValue = (value: string | number | null | undefined) => {
+  if (value === null || value === undefined || value === '') {
+    return '-';
+  }
+
+  return String(value);
+};
+
+const getDailyExportRows = (transactions: Transaction[], dayKey?: string) => {
+  const latestRows = getLatestDailyBalancingRows(getDailyBalancingRows(transactions));
+
+  if (!dayKey) {
+    return latestRows;
+  }
+
+  return latestRows.filter((row) => row.dayKey === dayKey);
+};
+
 const getPeriodRange = (period: PeriodKey) => {
   const now = new Date();
   const endDate = new Date(now);
@@ -703,42 +721,159 @@ const Reports: React.FC<ReportsProps> = ({ onLogout }) => {
       return;
     }
 
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+
     doc.setFontSize(16);
     doc.text(`Business Report - ${period.title}`, 14, 16);
     doc.setFontSize(10);
     doc.text(`Generated at: ${formatDate(reportData.generatedAt)}`, 14, 23);
 
-    autoTable(doc, {
-      startY: 28,
-      head: [['Metric', 'Value']],
-      body: [
-        ['Total Transactions', String(reportData.summary.totalTransactions)],
-        ['Total Deposits', formatCurrency(reportData.summary.totalDeposits)],
-        ['Total Withdrawals', formatCurrency(reportData.summary.totalWithdrawals)],
-        ['Net Profit', formatCurrency(reportData.summary.netProfit)],
-      ],
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [0, 102, 204] },
-    });
+    const dayRows = getDailyExportRows(reportData.transactions, loadedDailyDate);
+    const isDailyExport = period.key === 'day';
+    const reportRows = (() => {
+      if (period.key === 'day') {
+        const sortedRows = [...dayRows].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        return sortedRows.map((row) => [
+          formatDate(row.date),
+          row.serviceName,
+          row.lineCard,
+          formatCurrency(row.amount),
+          formatCurrency(row.cashInHand),
+          formatCurrency(row.dailyConsumption),
+          formatPdfValue(row.employeeName),
+          formatPdfValue(row.notes),
+        ]);
+      }
+
+      if (period.key === 'week') {
+        return getWeeklyBalancingGroups(getDailyBalancingRows(reportData.transactions)).map((group) => [
+          group.dateLabel,
+          String(group.rows.length),
+          formatCurrency(group.circulationAmount),
+          formatCurrency(group.totalLineAmounts),
+          formatCurrency(group.totalConsumption),
+          group.employees.join(', '),
+          getDisplayNotes(group.rows),
+        ]);
+      }
+
+      if (period.key === 'month') {
+        return getMonthlyBalancingGroups(getDailyBalancingRows(reportData.transactions)).map((group) => [
+          group.weekLabel,
+          String(group.days.length),
+          formatCurrency(group.totalCirculation),
+          formatCurrency(group.totalLineAmounts),
+          formatCurrency(group.totalConsumption),
+          group.employees.join(', '),
+        ]);
+      }
+
+      return getYearMonthSummaries(getDailyBalancingRows(reportData.transactions)).map((summary) => [
+        summary.monthLabel,
+        String(summary.activeDays),
+        String(summary.lineEntries),
+        formatCurrency(summary.totalLineAmounts),
+        formatCurrency(summary.totalConsumption),
+        formatCurrency(summary.averageCirculation),
+        formatCurrency(summary.closingCirculation),
+      ]);
+    })();
+
+    const tableConfig: { head: string[][]; columnStyles: Record<string, any> } = (() => {
+      if (period.key === 'day') {
+        return {
+          head: [['Date', 'Service', 'Line Card', 'Amount', 'Cash in Hand', 'Use of Day', 'Employee', 'Notes']],
+          columnStyles: {
+            0: { cellWidth: 28 },
+            1: { cellWidth: 34 },
+            2: { cellWidth: 22 },
+            3: { cellWidth: 22, halign: 'right' },
+            4: { cellWidth: 24, halign: 'right' },
+            5: { cellWidth: 24, halign: 'right' },
+            6: { cellWidth: 24 },
+            7: { cellWidth: 'auto' },
+          },
+        };
+      }
+
+      if (period.key === 'week') {
+        return {
+          head: [['Day', 'Records', 'Circulation', 'Line Amounts', 'Consumption', 'Employees', 'Notes']],
+          columnStyles: {
+            0: { cellWidth: 38 },
+            1: { cellWidth: 16, halign: 'right' },
+            2: { cellWidth: 28, halign: 'right' },
+            3: { cellWidth: 28, halign: 'right' },
+            4: { cellWidth: 28, halign: 'right' },
+            5: { cellWidth: 48 },
+            6: { cellWidth: 'auto' },
+          },
+        };
+      }
+
+      if (period.key === 'month') {
+        return {
+          head: [['Week', 'Days', 'Circulation', 'Line Amounts', 'Consumption', 'Employees']],
+          columnStyles: {
+            0: { cellWidth: 62 },
+            1: { cellWidth: 16, halign: 'right' },
+            2: { cellWidth: 28, halign: 'right' },
+            3: { cellWidth: 28, halign: 'right' },
+            4: { cellWidth: 28, halign: 'right' },
+            5: { cellWidth: 'auto' },
+          },
+        };
+      }
+
+      return {
+        head: [['Month', 'Days', 'Entries', 'Line Amounts', 'Consumption', 'Average Circulation', 'Closing Circulation']],
+        columnStyles: {
+          0: { cellWidth: 50 },
+          1: { cellWidth: 16, halign: 'right' },
+          2: { cellWidth: 18, halign: 'right' },
+          3: { cellWidth: 28, halign: 'right' },
+          4: { cellWidth: 28, halign: 'right' },
+          5: { cellWidth: 30, halign: 'right' },
+          6: { cellWidth: 30, halign: 'right' },
+        },
+      };
+    })();
+
+    if (isDailyExport) {
+      const currentCirculation = getDailyCirculationAmount(dayRows);
+      const profitLoss = getDailyProfitAmount(dayRows, loadedDailyDate);
+      const profitLossLabel = profitLoss >= 0
+        ? `Today there is a profit: ${formatCurrency(profitLoss)}`
+        : `Today there is a loss: ${formatCurrency(Math.abs(profitLoss))}`;
+      const notes = getDisplayNotes(dayRows);
+
+      doc.setFontSize(11);
+      doc.text(`Showing saved details: ${loadedDailyDate}`, 14, 34);
+      doc.text(`Current circulation: ${formatCurrency(currentCirculation)}`, 14, 41);
+      doc.text(profitLossLabel, 14, 48);
+      doc.text(`Notes: ${notes}`, 14, 55, { maxWidth: pageWidth - 28 });
+    }
 
     autoTable(doc, {
-      startY: 70,
-      head: [['Date', 'Service', 'Amount', 'Cash in Hand', 'Employee', 'Description']],
-      body: reportData.transactions.map((transaction) => [
-        formatDate(transaction.createdAt),
-        getServiceInfo(transaction.serviceType).name,
-        formatCurrency(transaction.amount),
-        formatCurrency(transaction.cashInHand),
-        transaction.employeeName || 'N/A',
-        transaction.description || '-',
-      ]),
+      startY: isDailyExport ? 62 : 35,
+      head: tableConfig.head,
+      body: reportRows,
       styles: {
-        fontSize: 8,
+        fontSize: 7,
+        cellPadding: 1.5,
+        overflow: 'linebreak',
+        valign: 'middle',
       },
       headStyles: {
         fillColor: [0, 102, 204],
+        fontSize: 7,
       },
+      columnStyles: tableConfig.columnStyles,
+      margin: { left: 14, right: 14 },
+      pageBreak: 'auto',
+      rowPageBreak: 'avoid',
     });
 
     doc.save(`${period.key}_report_${Date.now()}.pdf`);

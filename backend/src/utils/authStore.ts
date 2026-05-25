@@ -22,10 +22,18 @@ const STORE_PATH = path.resolve(process.cwd(), 'data', 'auth-store.json');
 async function readStore(): Promise<AuthStoreFile> {
   try {
     const raw = await fs.readFile(STORE_PATH, 'utf8');
+    if (raw.trim().length === 0) {
+      return { users: [] };
+    }
+
     const parsed = JSON.parse(raw) as AuthStoreFile;
     return { users: Array.isArray(parsed.users) ? parsed.users : [] };
   } catch (error: any) {
     if (error?.code === 'ENOENT') {
+      return { users: [] };
+    }
+
+    if (error instanceof SyntaxError) {
       return { users: [] };
     }
 

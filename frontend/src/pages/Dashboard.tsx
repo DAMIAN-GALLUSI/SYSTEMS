@@ -272,14 +272,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 <YAxis />
                 <ReferenceLine y={0} stroke="#9ca3af" strokeDasharray="4 4" />
                 <Tooltip 
-                  formatter={(value: number) => [
-                    new Intl.NumberFormat('en-TZ', {
+                  formatter={(value: number, name?: string) => {
+                    const formatted = new Intl.NumberFormat('en-TZ', {
                       style: 'currency',
                       currency: 'TZS',
                       minimumFractionDigits: 0
-                    }).format(value),
-                    t('dashboard.dailyChange')
-                  ]}
+                    }).format(value);
+
+                    const seriesName = typeof name === 'string' ? name : '';
+                    const label = seriesName === t('dashboard.profitLossSeries')
+                      ? t('dashboard.dailyChange')
+                      : (t('dashboard.circulatingTotal') || 'Circulation');
+
+                    return [formatted, label];
+                  }}
                   labelFormatter={(label) => new Date(label).toLocaleDateString('en-TZ')}
                 />
                 <Legend />
@@ -290,6 +296,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                   strokeWidth={2}
                   name={t('dashboard.profitLossSeries')}
                   dot={{ fill: '#0066CC', r: 4 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="circulatingTotal"
+                  stroke="#10B981"
+                  strokeWidth={2}
+                  name={t('dashboard.circulatingTotal') || 'Circulation'}
+                  dot={false}
                 />
               </LineChart>
             </ResponsiveContainer>

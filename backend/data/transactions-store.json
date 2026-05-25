@@ -1,0 +1,84 @@
+{
+  "transactions": [
+    {
+      "id": 1,
+      "user_id": 3,
+      "service_type": "vodacom",
+      "amount": 14999.99,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 12000,
+      "description": "{\"lineCard\":\"123\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":9999.98,\"notes\":\"\",\"saveBatchId\":\"1779698223649\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-05-25T08:37:03.726Z"
+    },
+    {
+      "id": 2,
+      "user_id": 3,
+      "service_type": "tigo",
+      "amount": 20000,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 12000,
+      "description": "{\"lineCard\":\"1234\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":9999.98,\"notes\":\"\",\"saveBatchId\":\"1779698223649\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-05-25T08:37:03.735Z"
+    },
+    {
+      "id": 3,
+      "user_id": 3,
+      "service_type": "halotel",
+      "amount": 59999.98,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 12000,
+      "description": "{\"lineCard\":\"2345\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":9999.98,\"notes\":\"\",\"saveBatchId\":\"1779698223649\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-05-25T08:37:03.738Z"
+    },
+    {
+      "id": 4,
+      "user_id": 3,
+      "service_type": "airtel",
+      "amount": 7000,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 12000,
+      "description": "{\"lineCard\":\"123456\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":9999.98,\"notes\":\"\",\"saveBatchId\":\"1779698223649\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-05-25T08:37:03.741Z"
+    },
+    {
+      "id": 5,
+      "user_id": 3,
+      "service_type": "lipa_namba_halotel",
+      "amount": 8999.99,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 12000,
+      "description": "{\"lineCard\":\"1234\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":9999.98,\"notes\":\"\",\"saveBatchId\":\"1779698223649\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-05-25T08:37:03.745Z"
+    },
+    {
+      "id": 6,
+      "user_id": 3,
+      "service_type": "lipa_namba_tigo",
+      "amount": 99999.99,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 12000,
+      "description": "{\"lineCard\":\"12348\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":9999.98,\"notes\":\"\",\"saveBatchId\":\"1779698223649\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-05-25T08:37:03.749Z"
+    },
+    {
+      "id": 7,
+      "user_id": 3,
+      "service_type": "lipa_namba_vodacom",
+      "amount": 79999.99,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 12000,
+      "description": "{\"lineCard\":\"1257\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":9999.98,\"notes\":\"\",\"saveBatchId\":\"1779698223649\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-05-25T08:37:03.750Z"
+    },
+    {
+      "id": 8,
+      "user_id": 3,
+      "service_type": "lipa_namba_airtel",
+      "amount": 299999,
+      "transaction_type": "withdraw",
+      "cash_in_hand": 12000,
+      "description": "{\"lineCard\":\"23468\",\"placeOfConsumption\":\"\",\"totalCashOut\":0,\"dailyConsumption\":9999.98,\"notes\":\"\",\"saveBatchId\":\"1779698223649\",\"mode\":\"daily-balancing-entry\",\"hasEntryAmounts\":true,\"isPrimaryAmountRow\":false}",
+      "created_at": "2026-05-25T08:37:03.751Z"
+    }
+  ]
+}

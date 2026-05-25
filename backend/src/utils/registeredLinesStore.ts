@@ -19,10 +19,18 @@ const STORE_PATH = path.resolve(process.cwd(), 'data', 'registered-lines-store.j
 async function readStore(): Promise<RegisteredLinesStoreFile> {
   try {
     const raw = await fs.readFile(STORE_PATH, 'utf8');
+    if (raw.trim().length === 0) {
+      return { lines: [] };
+    }
+
     const parsed = JSON.parse(raw) as RegisteredLinesStoreFile;
     return { lines: Array.isArray(parsed.lines) ? parsed.lines : [] };
   } catch (error: any) {
     if (error?.code === 'ENOENT') {
+      return { lines: [] };
+    }
+
+    if (error instanceof SyntaxError) {
       return { lines: [] };
     }
     throw error;

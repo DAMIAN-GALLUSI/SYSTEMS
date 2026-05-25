@@ -21,10 +21,18 @@ const STORE_PATH = path.resolve(process.cwd(), 'data', 'transactions-store.json'
 async function readStore(): Promise<TransactionStoreFile> {
   try {
     const raw = await fs.readFile(STORE_PATH, 'utf8');
+    if (raw.trim().length === 0) {
+      return { transactions: [] };
+    }
+
     const parsed = JSON.parse(raw) as TransactionStoreFile;
     return { transactions: Array.isArray(parsed.transactions) ? parsed.transactions : [] };
   } catch (error: any) {
     if (error?.code === 'ENOENT') {
+      return { transactions: [] };
+    }
+
+    if (error instanceof SyntaxError) {
       return { transactions: [] };
     }
 
