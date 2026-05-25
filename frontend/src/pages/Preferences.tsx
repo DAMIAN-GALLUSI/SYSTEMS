@@ -24,6 +24,9 @@ interface NotificationPreferences {
   emailNotifications: boolean;
 }
 
+const PROFILE_PHOTO_STORAGE_KEY = 'user-profile-photo';
+const PROFILE_PHOTO_UPDATED_EVENT = 'user-profile-photo-updated';
+
 const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
   const [language, setLanguage] = useState<LanguageCode>('en');
   const [themeMode, setThemeMode] = useState<ThemeMode>('light');
@@ -31,8 +34,22 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const [languageMessage, setLanguageMessage] = useState('');
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const languageMenuRef = useRef<HTMLDivElement | null>(null);
   const { t, setLang } = useLanguage();
+
+  const preferencesBadge = profilePhoto ? (
+    <img className="preferences-header-badge preferences-header-badge-image" src={profilePhoto} alt="Profile" />
+  ) : (
+    <div className="preferences-header-badge" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path
+          d="M12 12.2a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4Zm0 2.1c-4.4 0-8 2.6-8 5.8v.5h16v-.5c0-3.2-3.6-5.8-8-5.8Z"
+          fill="currentColor"
+        />
+      </svg>
+    </div>
+  );
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
@@ -60,6 +77,18 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
         // Keep defaults when stored notification data is invalid.
       }
     }
+
+    const savedProfilePhoto = localStorage.getItem(PROFILE_PHOTO_STORAGE_KEY);
+    if (savedProfilePhoto) {
+      setProfilePhoto(savedProfilePhoto);
+    }
+
+    const handleProfilePhotoUpdate = () => {
+      setProfilePhoto(localStorage.getItem(PROFILE_PHOTO_STORAGE_KEY));
+    };
+
+    window.addEventListener(PROFILE_PHOTO_UPDATED_EVENT, handleProfilePhotoUpdate);
+    return () => window.removeEventListener(PROFILE_PHOTO_UPDATED_EVENT, handleProfilePhotoUpdate);
   }, []);
 
   useEffect(() => {
@@ -133,8 +162,13 @@ const Preferences: React.FC<PreferencesProps> = ({ onLogout }) => {
       <div className="preferences-content">
         <div className="preferences-panel">
           <div className="preferences-panel-header">
-            <h2>{t('preferences.title')}</h2>
-            <p>{t('preferences.languageSummary')}</p>
+            <div className="preferences-panel-header-row">
+              {preferencesBadge}
+              <div>
+                <h2>{t('preferences.title')}</h2>
+                <p>{t('preferences.languageSummary')}</p>
+              </div>
+            </div>
           </div>
 
           <div className="preferences-section-group">

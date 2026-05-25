@@ -48,6 +48,14 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
     .map((namePart) => namePart[0]?.toUpperCase() || '')
     .join('') || 'U';
 
+  const profileBadge = profilePhoto ? (
+    <img className="profile-header-badge profile-header-badge-image" src={profilePhoto} alt="Profile" />
+  ) : (
+    <div className="profile-header-badge" aria-hidden="true">
+      {initials}
+    </div>
+  );
+
   useEffect(() => {
     const rawProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
     if (rawProfile) {
@@ -241,9 +249,12 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
         <div className="profile-screen">
           <div className="profile-header">
             <div className="profile-header-top">
-              <div>
-                <h1>{t('profile.title')}</h1>
-                <p>{t('profile.manage')}</p>
+              <div className="profile-header-title-group">
+                {profileBadge}
+                <div>
+                  <h1>{t('profile.title')}</h1>
+                  <p>{t('profile.manage')}</p>
+                </div>
               </div>
               <span className={`account-status-badge ${accountStatus.toLowerCase()}`}>
                 {accountStatus === 'Active' ? t('profile.active') : t('profile.suspended')}
