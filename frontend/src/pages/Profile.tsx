@@ -149,8 +149,8 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
         });
       });
     } catch {
-      setCameraError(t('profile.cameraUnavailable'));
       cameraInputRef.current?.click();
+      setCameraError(t('profile.cameraUnavailable'));
     }
   };
 
