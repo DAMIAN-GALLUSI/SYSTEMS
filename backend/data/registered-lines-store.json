@@ -1,14 +1,6 @@
 {
   "lines": [
     {
-      "id": "2-1779177952244-0",
-      "userId": 2,
-      "serviceType": "halotel",
-      "lineCard": "342",
-      "createdAt": "2026-05-19T08:05:52.244Z",
-      "updatedAt": "2026-05-19T08:05:52.244Z"
-    },
-    {
       "id": "3-1779178793825-0",
       "userId": 3,
       "serviceType": "vodacom",
@@ -71,6 +63,22 @@
       "lineCard": "23468",
       "createdAt": "2026-05-19T08:19:53.825Z",
       "updatedAt": "2026-05-19T08:19:53.825Z"
+    },
+    {
+      "id": "2-1781607887769-0",
+      "userId": 2,
+      "serviceType": "vodacom",
+      "lineCard": "123444",
+      "createdAt": "2026-06-16T11:04:47.769Z",
+      "updatedAt": "2026-06-16T11:04:47.769Z"
+    },
+    {
+      "id": "2-1781607887769-1",
+      "userId": 2,
+      "serviceType": "tigo",
+      "lineCard": "915707",
+      "createdAt": "2026-06-16T11:04:47.769Z",
+      "updatedAt": "2026-06-16T11:04:47.769Z"
     }
   ]
 }

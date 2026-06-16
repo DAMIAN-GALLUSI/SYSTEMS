@@ -151,8 +151,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const fetchDashboardData = async () => {
     try {
       const response = await dashboardAPI.getData();
-      if (response.data && Object.keys(response.data).length > 0) {
-        setDashboardData(response.data);
+      const nextData = response.data;
+      const hasMeaningfulData = Boolean(
+        nextData && (
+          (Array.isArray(nextData.services) && nextData.services.length > 0) ||
+          Number(nextData?.summary?.total_transactions || 0) > 0 ||
+          Number(nextData?.summary?.total_circulating || 0) > 0 ||
+          Number(nextData?.summary?.current_profit_loss || 0) !== 0
+        )
+      );
+
+      if (hasMeaningfulData) {
+        setDashboardData(nextData);
       }
     } catch (error) {
       console.error('Failed to fetch dashboard data from API:', error);
@@ -179,7 +189,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     try {
       setLoading(true);
       const response = await dashboardAPI.getProfitLoss(days);
-      if (response.data?.profitLossData && response.data.profitLossData.length > 0) {
+      if (Array.isArray(response.data?.profitLossData) && response.data.profitLossData.length > 0) {
         setProfitLossData(response.data.profitLossData);
       }
     } catch (error) {

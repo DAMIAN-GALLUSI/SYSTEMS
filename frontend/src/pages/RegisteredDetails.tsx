@@ -63,26 +63,55 @@ const RegisteredDetails: React.FC<RegisteredDetailsProps> = ({ onLogout }) => {
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
-    const raw = localStorage.getItem(REGISTERED_DETAILS_STORAGE_KEY);
-    if (!raw) {
-      return;
-    }
-
-    try {
-      const parsed: SavedRegisteredDetails = JSON.parse(raw);
-      if (!Array.isArray(parsed.entries) || parsed.entries.length < 1) {
-        return;
+    const loadFromLocalStorage = () => {
+      const raw = localStorage.getItem(REGISTERED_DETAILS_STORAGE_KEY);
+      if (!raw) {
+        return false;
       }
 
-      setEntries(
-        parsed.entries.map((entry) => ({
-          serviceInput: entry.serviceName || entry.serviceType,
-          lineCard: entry.lineCard,
-        }))
-      );
-    } catch {
-      setEntries([createEmptyEntry()]);
-    }
+      try {
+        const parsed: SavedRegisteredDetails = JSON.parse(raw);
+        if (!Array.isArray(parsed.entries) || parsed.entries.length < 1) {
+          return false;
+        }
+
+        setEntries(
+          parsed.entries.map((entry) => ({
+            serviceInput: entry.serviceName || entry.serviceType,
+            lineCard: entry.lineCard,
+          }))
+        );
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    const loadRegisteredDetails = async () => {
+      try {
+        const response = await registeredLinesAPI.getAll();
+        const lines = response.data?.lines;
+
+        if (Array.isArray(lines) && lines.length > 0) {
+          const hydratedEntries = lines.map((line: { serviceType?: string; serviceName?: string; lineCard?: string }) => ({
+            serviceInput: line.serviceName || line.serviceType || '',
+            lineCard: line.lineCard || '',
+          }));
+
+          setEntries(hydratedEntries.length > 0 ? hydratedEntries : [createEmptyEntry()]);
+          return;
+        }
+      } catch (error) {
+        console.warn('Failed to load registered details from backend, falling back to localStorage:', error);
+      }
+
+      const loadedFromLocalStorage = loadFromLocalStorage();
+      if (!loadedFromLocalStorage) {
+        setEntries([createEmptyEntry()]);
+      }
+    };
+
+    loadRegisteredDetails();
   }, []);
 
   const handleEntryChange = (index: number, field: keyof LineEntry, value: string) => {
