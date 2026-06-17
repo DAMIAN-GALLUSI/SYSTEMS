@@ -4,19 +4,21 @@ import { authAPI } from '../services/api';
 import PublicAuthLayout from '../components/PublicAuthLayout';
 import { useLanguage } from '../contexts/LanguageContext';
 import './Auth.css';
+import { clearRememberedEmail, getRememberedEmail, storeRememberedEmail } from '../utils/authStorage';
 
 interface LoginProps {
-  onLogin: (token: string, role: string) => void;
+  onLogin: (token: string, role: string, rememberMe?: boolean) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const { t } = useLanguage();
   const location = useLocation();
   const locationState = location.state as { email?: string; registrationSuccess?: boolean } | null;
-  const [email, setEmail] = useState(locationState?.email ?? localStorage.getItem('pendingLoginEmail') ?? '');
+  const [email, setEmail] = useState(locationState?.email ?? localStorage.getItem('pendingLoginEmail') ?? getRememberedEmail());
   const [registeredEmails, setRegisteredEmails] = useState<string[]>([]);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState(locationState?.registrationSuccess ? t('public.auth.registrationSuccess') : '');
   const [loading, setLoading] = useState(false);
@@ -31,6 +33,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     if (savedEmail) {
       setEmail(savedEmail);
       localStorage.removeItem('pendingLoginEmail');
+    } else if (getRememberedEmail()) {
+      setEmail(getRememberedEmail());
     }
 
     if (locationState?.registrationSuccess) {
@@ -46,7 +50,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     try {
       const response = await authAPI.login(email, password);
       const { token, user } = response.data;
-      onLogin(token, user.role);
+      if (rememberMe) {
+        storeRememberedEmail(email.trim());
+      } else {
+        clearRememberedEmail();
+      }
+
+      onLogin(token, user.role, rememberMe);
       navigate('/daily-balancing');
     } catch (err: any) {
       setError(err.response?.data?.message || t('public.auth.loginFailed'));
@@ -119,6 +129,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               )}
             </button>
           </div>
+        </div>
+        <div className="auth-options-row">
+          <label className="remember-me-option">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            <span>{t('public.auth.rememberMe')}</span>
+          </label>
+          <Link to="/forgot-password" className="auth-inline-link">
+            {t('public.auth.forgotPassword')}
+          </Link>
         </div>
         <button type="submit" disabled={loading} className="btn-primary">
           {loading ? t('public.auth.loggingIn') : t('public.auth.login')}

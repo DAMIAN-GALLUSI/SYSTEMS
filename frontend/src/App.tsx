@@ -12,26 +12,27 @@ import Benefits from './pages/Benefits';
 import Landing from './pages/Landing';
 import Preferences from './pages/Preferences';
 import Profile from './pages/Profile';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import { clearAuthSession, getStoredAuthToken, storeAuthSession } from './utils/authStorage';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getStoredAuthToken();
     if (token) {
       setIsAuthenticated(true);
     }
   }, []);
 
-  const handleLogin = (token: string, role: string) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('role', role);
+  const handleLogin = (token: string, role: string, rememberMe = true) => {
+    storeAuthSession(token, role, rememberMe);
     setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
+    clearAuthSession();
     setIsAuthenticated(false);
   };
 
@@ -49,6 +50,14 @@ function App() {
           element={
             isAuthenticated ? <Navigate to="/daily-balancing" /> : <Login onLogin={handleLogin} />
           } 
+        />
+        <Route
+          path="/forgot-password"
+          element={isAuthenticated ? <Navigate to="/daily-balancing" /> : <ForgotPassword />}
+        />
+        <Route
+          path="/reset-password"
+          element={isAuthenticated ? <Navigate to="/daily-balancing" /> : <ResetPassword />}
         />
         <Route 
           path="/register" 

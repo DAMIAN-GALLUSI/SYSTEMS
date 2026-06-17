@@ -3,11 +3,11 @@
     {
       "id": 1,
       "email": "testuser@example.com",
-      "password": "$2a$10$d8mW9gmWSmwL93EHzUpoTOAf32v1FZt4AcrkeIfhEhq6O8mCdwkZK",
+      "password": "$2a$10$8zkwE9w6LfXMivlFxDP5zucLpMltiHbUvqkyqjkMnMSZprNEtIvzu",
       "full_name": "Test User",
       "role": "employee",
       "created_at": "2026-04-04T06:00:05.135Z",
-      "updated_at": "2026-04-04T06:00:05.135Z"
+      "updated_at": "2026-06-17T08:13:15.545Z"
     },
     {
       "id": 2,

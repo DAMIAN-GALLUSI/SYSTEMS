@@ -51,6 +51,25 @@ export async function findLocalUserByEmail(email: string) {
   return store.users.find((user) => user.email.toLowerCase() === email.toLowerCase()) || null;
 }
 
+export async function updateLocalUserPasswordByEmail(email: string, hashedPassword: string) {
+  const store = await readStore();
+  const targetIndex = store.users.findIndex((user) => user.email.toLowerCase() === email.toLowerCase());
+
+  if (targetIndex === -1) {
+    return null;
+  }
+
+  const now = new Date().toISOString();
+  store.users[targetIndex] = {
+    ...store.users[targetIndex],
+    password: hashedPassword,
+    updated_at: now,
+  };
+
+  await writeStore(store);
+  return store.users[targetIndex];
+}
+
 export async function createLocalUser(input: {
   email: string;
   hashedPassword: string;
